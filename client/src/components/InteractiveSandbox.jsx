@@ -256,10 +256,10 @@ const InteractiveSandbox = ({ defaultCode, theme }) => {
 
   return (
     <div
-      className={`transition-all duration-300 gap-4 p-2 overflow-hidden ${
+      className={`transition-all duration-300 gap-2 md:gap-4 p-2 overflow-hidden ${
         isFullscreen
-          ? "fixed inset-0 z-[100] w-screen h-dvh p-4 bg-base-300 flex flex-col lg:flex-row"
-          : "flex flex-col lg:flex-row w-full h-[600px] md:h-[500px] border border-base-300 rounded-3xl bg-base-200 shadow-lg"
+          ? "fixed inset-0 z-[100] w-screen h-dvh p-2 md:p-4 bg-base-300 flex flex-col lg:flex-row"
+          : "flex flex-col lg:flex-row w-full h-[680px] md:h-[500px] border border-base-300 rounded-3xl bg-base-200 shadow-lg"
       }`}
     >
       {/* Left side: Editor */}
