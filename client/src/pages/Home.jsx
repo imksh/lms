@@ -152,7 +152,7 @@ const Home = () => {
   const defaultCode = lang === "react" ? defaultReactCode : defaultJSCode;
 
   return (
-    <div className="p-8 max-w-5xl mx-auto w-full flex flex-col gap-8 animate-fadeIn">
+    <div className="px-4 py-8 md:p-8 max-w-5xl mx-auto w-full flex flex-col gap-8 animate-fadeIn">
       {/* Hero Welcome Banner */}
       <section className="rounded-3xl bg-gradient-to-br from-primary/10 via-base-200 to-accent/5 p-8 md:p-10 border border-base-300 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="max-w-2xl flex flex-col gap-3">

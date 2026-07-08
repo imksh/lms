@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { topicsContent } from "../../data/topicsContent";
+import { topicsContent } from "../../assets/data/topicsContent";
 import Header from "../ui/Header";
 import Sidebar from "../ui/Sidebar";
 import InteractiveSandbox from "../InteractiveSandbox";
@@ -267,10 +267,10 @@ const LMSLayout = ({ children }) => {
   const activeTopic = topicsContent[currentPath];
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-base-100 text-base-content flex flex-col font-sans transition-colors duration-300">
+    <div className="h-dvh w-screen overflow-hidden bg-base-100 text-base-content flex flex-col font-sans transition-colors duration-300">
       {/* Mobile Slider Sidebar */}
       <AnimatePresence>
-        {isOpen && isTopicPage && (
+        {isOpen && (
           <>
             {/* Backdrop Overlay */}
             <motion.div
@@ -278,7 +278,7 @@ const LMSLayout = ({ children }) => {
               animate={{ opacity: 0.4 }}
               exit={{ opacity: 0 }}
               onClick={closeSidebar}
-              className="fixed inset-0 z-40 bg-neutral-950/80 lg:hidden"
+              className="fixed inset-0 z-49 bg-neutral-950/80 lg:hidden"
             />
             {/* Sliding Drawer container */}
             <motion.div
@@ -290,7 +290,7 @@ const LMSLayout = ({ children }) => {
             >
               <div className="flex justify-between items-center px-6 py-4 border-b border-base-300 bg-base-200 shrink-0">
                 <span className="text-sm font-black text-primary">
-                  Syllabus Menu
+                  {isTopicPage ? "Syllabus Menu" : "Choose a Subject"}
                 </span>
                 <button
                   onClick={closeSidebar}
@@ -305,6 +305,7 @@ const LMSLayout = ({ children }) => {
                   handleCourseChange={handleCourseChange}
                   topicsList={topicsList}
                   currentPath={currentPath}
+                  isTopicPage={isTopicPage}
                   className="flex w-full border-none shadow-none"
                 />
               </div>
@@ -325,18 +326,19 @@ const LMSLayout = ({ children }) => {
             handleCourseChange={handleCourseChange}
             topicsList={topicsList}
             currentPath={currentPath}
+            isTopicPage={isTopicPage}
           />
         )}
 
         {/* Content Workspace - Independently Scrolling */}
         <main className="flex-1 overflow-y-auto flex flex-col bg-base-100 h-full">
           {isTopicPage && activeTopic ? (
-            <div className="p-6 max-w-5xl mx-auto w-full flex flex-col gap-6">
+            <div className="px-4 py-6 md:p-6 max-w-5xl mx-auto w-full flex flex-col gap-6">
               {/* Breadcrumbs & Header Details */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-xs text-base-content/60">
                   <Link to="/" className="hover:text-primary">
-                    MERN Stack
+                    LMS
                   </Link>
                   <span>/</span>
                   <span className="text-base-content font-medium">

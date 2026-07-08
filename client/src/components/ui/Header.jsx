@@ -7,7 +7,7 @@ const Header = ({ saveStatus, theme, toggleTheme }) => {
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
 
   return (
-    <header className="h-16 bg-base-200/90 backdrop-blur-md border-b border-base-300 px-6 py-4 flex items-center justify-between shrink-0 z-50">
+    <header className="h-16 bg-base-200/90 backdrop-blur-md border-b border-base-300 px-6 py-4 flex items-center justify-between shrink-0 z-40">
       <div className="flex items-center gap-1">
         {/* Hamburger Icon on Phone/Tablet */}
         <button
@@ -22,7 +22,7 @@ const Header = ({ saveStatus, theme, toggleTheme }) => {
           <span className="text-3xl animate-bounce"></span>
           <div>
             <h1 className="text-xl font-black text-primary group-hover:scale-105 transition-transform">
-              MERN Stack
+              LMS
             </h1>
           </div>
         </Link>

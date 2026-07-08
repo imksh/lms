@@ -259,7 +259,7 @@ const InteractiveSandbox = ({ defaultCode, theme }) => {
       className={`transition-all duration-300 gap-4 p-2 overflow-hidden ${
         isFullscreen
           ? "fixed inset-0 z-[100] w-screen h-screen p-4 bg-base-300 flex flex-col lg:flex-row"
-          : "flex flex-col lg:flex-row w-full h-[500px] border border-base-300 rounded-3xl bg-base-200 shadow-lg"
+          : "flex flex-col lg:flex-row w-full h-[640px] md:h-[500px] border border-base-300 rounded-3xl bg-base-200 shadow-lg"
       }`}
     >
       {/* Left side: Editor */}
@@ -351,7 +351,7 @@ const InteractiveSandbox = ({ defaultCode, theme }) => {
             {isScriptMode ? "💻 Terminal / Console" : "🖥️ Browser View"}
           </span>
           {showPreview && !isScriptMode && (
-            <div className="bg-base-100 border border-base-300 px-3 py-1 rounded-xl text-[10px] font-mono text-base-content/65 select-none truncate ml-auto mr-2">
+            <div className="hidden md:flex bg-base-100 border border-base-300 px-3 py-1 rounded-xl text-[10px] font-mono text-base-content/65 select-none truncate ml-auto mr-2">
               http://localhost:5173/demo
             </div>
           )}
