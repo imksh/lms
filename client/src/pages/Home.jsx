@@ -66,64 +66,20 @@ const subjects = [
   },
 ];
 
-const defaultReactCode = `// Welcome to the Sandbox!
-// You can build React components.
-// Click "Run Code" to execute.
+const defaultReactCode = `import React from "react";
 
 function App() {
-  const [likes, setLikes] = React.useState(0);
-  const [text, setText] = React.useState("React Sandbox!");
-
   return (
-    <div className="flex flex-col gap-4 p-6 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-pink-500/10 border border-base-300 rounded-3xl">
-      <div className="flex items-center gap-3">
-        <span className="text-4xl animate-pulse">🚀</span>
-        <div>
-          <h2 className="text-xl font-black text-primary">
-            {text}
-          </h2>
-          <p className="text-xs text-base-content/60">Edit code on the left to see changes live!</p>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <input 
-          type="text" 
-          value={text} 
-          onChange={(e) => setText(e.target.value)} 
-          className="input input-sm input-bordered w-full rounded-xl focus:border-primary text-xs px-4" 
-          placeholder="Update title text..."
-        />
-        
-        <button 
-          onClick={() => setLikes(likes + 1)}
-          className="btn btn-sm btn-primary w-full rounded-xl font-bold flex gap-2 hover:scale-[1.01] active:scale-[0.99] transition-transform"
-        >
-          ❤ Like this Sandbox ({likes})
-        </button>
-      </div>
+    <div className="flex justify-center item-center h-full w-full">
+      Code here...
     </div>
   );
 }`;
 
-const defaultJSCode = `//JavaScript Playground
-// Write plain JavaScript and observe terminal outputs.
-// Click "Run Code" to execute.
+const defaultJSCode = `// JavaScript Playground
 
-const students = [
-  { name: "Alice", score: 95 },
-  { name: "Bob", score: 82 },
-  { name: "Charlie", score: 88 }
-];
-
-console.log("Analyzing student scores...");
-
-// Calculate average score
-const total = students.reduce((sum, s) => sum + s.score, 0);
-const average = total / students.length;
-console.log("Average Score:", average.toFixed(2));
+console.log("Code here...");
 `;
-
 const Home = () => {
   const navigate = useNavigate();
   const [content, setContent] = useState("");
@@ -234,7 +190,7 @@ const Home = () => {
         </div>
         <InteractiveSandbox defaultCode={defaultCode} theme={theme} />
       </div>
-      <div className="flex border-b border-base-300 pb-3">
+      <div className="flex border-b border-base-300 pb-3 mt-8">
         <h3 className="text-xl font-bold flex items-center gap-2">Notebook</h3>
       </div>
       <div className="w-full">

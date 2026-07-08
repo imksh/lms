@@ -258,8 +258,8 @@ const InteractiveSandbox = ({ defaultCode, theme }) => {
     <div
       className={`transition-all duration-300 gap-4 p-2 overflow-hidden ${
         isFullscreen
-          ? "fixed inset-0 z-[100] w-screen h-screen p-4 bg-base-300 flex flex-col lg:flex-row"
-          : "flex flex-col lg:flex-row w-full h-[640px] md:h-[500px] border border-base-300 rounded-3xl bg-base-200 shadow-lg"
+          ? "fixed inset-0 z-[100] w-screen h-dvh p-4 bg-base-300 flex flex-col lg:flex-row"
+          : "flex flex-col lg:flex-row w-full h-[600px] md:h-[500px] border border-base-300 rounded-3xl bg-base-200 shadow-lg"
       }`}
     >
       {/* Left side: Editor */}
