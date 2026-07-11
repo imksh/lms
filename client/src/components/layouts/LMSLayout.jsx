@@ -1,15 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  Outlet,
+  useParams,
+} from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { topicsContent } from "../../assets/data/topicsContent";
 import Header from "../ui/Header";
 import Sidebar from "../ui/Sidebar";
-import InteractiveSandbox from "../InteractiveSandbox";
-import LearnTab from "../LearnTab";
-import PracticeTab from "../PracticeTab";
-import NotebookTab from "../NotebookTab";
+import Sandbox from "../student/Sandbox";
+import LearnTab from "../student/LearnTab";
+import PracticeTab from "../student/PracticeTab";
+import NotebookTab from "../student/NotebookTab";
 import BottomNavigation from "../ui/BottomNavigation";
 import { useSidebarStore } from "../../store/useSidebarStore";
+import { useAuthStore } from "../../store/useAuthStore";
+import { cmsService } from "../../services/cmsService";
+import { userDataService } from "../../services/userDataService";
+import { submissionService } from "../../services/submissionService";
 
 // Syllabus structure grouped by course modules
 const coursesConfig = {
@@ -152,12 +162,84 @@ const coursesConfig = {
   },
 };
 
-const LMSLayout = ({ children }) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const currentPath = location.pathname;
+const defaultSubjects = [
+  {
+    key: "javascript",
+    title: "JavaScript Basics",
+    icon: "IoLogoJavascript",
+    iconColor: "text-yellow-500",
+  },
+  {
+    key: "react",
+    title: "React Masterclass",
+    icon: "FaReact",
+    iconColor: "text-blue-500",
+  },
+  {
+    key: "node",
+    title: "Node.js Server",
+    icon: "FaNodeJs",
+    iconColor: "text-green-500",
+  },
+  {
+    key: "express",
+    title: "Express API Framework",
+    icon: "SiExpress",
+    iconColor: "text-purple-500",
+  },
+  {
+    key: "mongodb",
+    title: "MongoDB NoSQL",
+    icon: "SiMongodb",
+    iconColor: "text-emerald-600",
+  },
+  {
+    key: "mongoose",
+    title: "Mongoose ODM",
+    icon: "SiMongoosedotws",
+    iconColor: "text-orange-500",
+  },
+  {
+    key: "authentation",
+    title: "Auth & Session JWT",
+    icon: "FaShieldAlt",
+    iconColor: "text-gray-500",
+  },
+];
 
-  const { isOpen, closeSidebar } = useSidebarStore();
+const LMSLayout = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [dbModules, setDbModules] = useState([]);
+  const [dbSubjects, setDbSubjects] = useState([]);
+  const [dbTopics, setDbTopics] = useState([]);
+  const [mySubmissions, setMySubmissions] = useState([]);
+
+  const {
+    moduleKey,
+    subjectKey: rawSubjectKey,
+    "*": rawTopicWildcard,
+  } = useParams();
+
+  // Resolve actual subject key and topic ID based on whether moduleKey matches a subject
+  const isSubject = (dbSubjects.length > 0 ? dbSubjects : defaultSubjects).some(
+    (s) => s.key === moduleKey,
+  );
+  const subjectKey = isSubject ? moduleKey : rawSubjectKey;
+  const topicWildcard = isSubject
+    ? rawSubjectKey + (rawTopicWildcard ? "/" + rawTopicWildcard : "")
+    : rawTopicWildcard;
+
+  // If there's a subject and topicWildcard, we construct the topicId (e.g. "/introduction")
+  // For backwards compatibility or root routes, we fallback to location.pathname
+  const currentPath = location.pathname;
+  const topicPath = topicWildcard
+    ? topicWildcard.startsWith("/")
+      ? topicWildcard
+      : "/" + topicWildcard
+    : currentPath;
+
+  const { isOpen, closeSidebar, openSidebar } = useSidebarStore();
 
   // Auto-close sidebar on route change
   useEffect(() => {
@@ -191,17 +273,124 @@ const LMSLayout = ({ children }) => {
   });
 
   const [saveStatus, setSaveStatus] = useState("");
+  const { user } = useAuthStore();
+
+  // Fetch CMS subjects and topics from database
+  useEffect(() => {
+    const fetchSyllabus = async () => {
+      try {
+        const [{ data: mods }, { data: subs }, { data: tops }] =
+          await Promise.all([
+            cmsService.getModules(),
+            cmsService.getSubjects(),
+            cmsService.getTopics(),
+          ]);
+        setDbModules(mods);
+        setDbSubjects(subs);
+        setDbTopics(tops);
+      } catch (err) {
+        console.error("Failed to load CMS data, using fallback:", err);
+      }
+    };
+    fetchSyllabus();
+  }, []);
+
+  // Fetch backend data if logged in, otherwise load from localStorage
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (user) {
+        try {
+          setSaveStatus("Syncing...");
+
+          // Fetch notes
+          const { data: notesList } = await userDataService.getNotes();
+          const notesMap = {};
+          notesList.forEach((n) => {
+            notesMap[n.topicId] = n.content;
+          });
+          setNotes(notesMap);
+
+          // Fetch progress
+          const { data: progressList } = await userDataService.getProgress();
+          setCompletedTopics(progressList);
+
+          // Fetch answers
+          const { data: answersList } = await userDataService.getAnswers();
+          const answersMap = {};
+          answersList.forEach((a) => {
+            answersMap[`${a.topicId}_${a.questionIndex}`] = a.code;
+          });
+          setExerciseAnswers(answersMap);
+
+          // Fetch submissions
+          const { data: subsData } = await submissionService.getMySubmissions();
+          setMySubmissions(subsData);
+
+          setSaveStatus("Synced with cloud");
+          setTimeout(() => setSaveStatus(""), 2000);
+        } catch (error) {
+          console.error("Sync error:", error);
+          setSaveStatus("Failed to sync");
+        }
+      } else {
+        // Logged out, reload local states
+        const savedTopics = localStorage.getItem("completedTopics");
+        setCompletedTopics(savedTopics ? JSON.parse(savedTopics) : []);
+
+        const savedNotes = localStorage.getItem("lms_notes");
+        setNotes(savedNotes ? JSON.parse(savedNotes) : {});
+
+        const savedAnswers = localStorage.getItem("lms_answers");
+        setExerciseAnswers(savedAnswers ? JSON.parse(savedAnswers) : {});
+
+        setMySubmissions([]);
+      }
+    };
+
+    loadUserData();
+  }, [user]);
+
+  const handleTaskSubmit = async (
+    sectionIndex,
+    submissionType,
+    contentText,
+  ) => {
+    if (!user) {
+      alert("Please log in to submit tasks for evaluation.");
+      return false;
+    }
+    setSaveStatus("Submitting...");
+    try {
+      const { data } = await submissionService.submit(
+        topicPath,
+        sectionIndex,
+        submissionType,
+        contentText,
+      );
+
+      setMySubmissions((prev) => {
+        const filtered = prev.filter(
+          (s) => !(s.topicId === topicPath && s.sectionIndex === sectionIndex),
+        );
+        return [...filtered, data];
+      });
+
+      setSaveStatus("Task submitted!");
+      setTimeout(() => setSaveStatus(""), 2000);
+      return true;
+    } catch (error) {
+      console.error(error);
+      setSaveStatus("Submission failed");
+      alert(error.response?.data?.message || error.message);
+      return false;
+    }
+  };
 
   // Apply theme to document
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
   }, [theme]);
-
-  // Sync completion to storage
-  useEffect(() => {
-    localStorage.setItem("completedTopics", JSON.stringify(completedTopics));
-  }, [completedTopics]);
 
   // Keep tab in sync or reset to learn on topic change
   useEffect(() => {
@@ -214,6 +403,12 @@ const LMSLayout = ({ children }) => {
 
   // Determine active course key based on URL path prefix
   const getActiveCourseKey = () => {
+    if (subjectKey) return subjectKey;
+    if (dbSubjects.length > 0 && dbTopics.length > 0) {
+      const activeTopicItem = dbTopics.find((t) => t.topicId === currentPath);
+      if (activeTopicItem) return activeTopicItem.subjectKey;
+    }
+    // Fallback prefixes
     if (currentPath.startsWith("/javascript")) return "javascript";
     if (currentPath.startsWith("/node")) return "node";
     if (currentPath.startsWith("/express")) return "express";
@@ -223,103 +418,144 @@ const LMSLayout = ({ children }) => {
     return "react"; // Default fallback
   };
 
+  const getDynamicSyllabus = () => {
+    if (dbSubjects.length === 0 || dbTopics.length === 0) {
+      return coursesConfig;
+    }
+    const config = {};
+    dbSubjects.forEach((subj) => {
+      const mod = dbModules.find(
+        (m) => m._id === subj.module?._id || m._id === subj.module,
+      );
+      const modKey =
+        mod?.path && mod.path !== "/" ? mod.path.replace(/^\//, "") : "";
+
+      config[subj.key] = {
+        title: subj.title,
+        topics: dbTopics
+          .filter((t) => t.subjectKey === subj.key)
+          .map((t) => {
+            const tId = t.topicId.startsWith("/") ? t.topicId : "/" + t.topicId;
+            const pathParts = [modKey, subj.key, tId.replace(/^\//, "")].filter(
+              Boolean,
+            );
+            return {
+              path: "/" + pathParts.join("/"),
+              title: t.title,
+              id: tId.replace(/\//g, "-"),
+            };
+          }),
+      };
+    });
+    return config;
+  };
+
+  const dynamicCoursesConfig = getDynamicSyllabus();
   const activeCourseKey = getActiveCourseKey();
-  const activeCourse = coursesConfig[activeCourseKey];
+  const activeCourse = dynamicCoursesConfig[activeCourseKey] || {
+    title: "",
+    topics: [],
+  };
   const topicsList = activeCourse.topics;
 
+  // Auto-redirect to first topic if accessing subject root
+  useEffect(() => {
+    if (subjectKey && !topicWildcard && dynamicCoursesConfig[subjectKey]) {
+      const firstTopic = dynamicCoursesConfig[subjectKey]?.topics[0];
+      if (firstTopic) {
+        navigate(firstTopic.path, { replace: true });
+      }
+    }
+  }, [subjectKey, topicWildcard, dynamicCoursesConfig, navigate]);
+
   const handleCourseChange = (courseKey) => {
-    const firstTopic = coursesConfig[courseKey].topics[0];
+    const firstTopic = dynamicCoursesConfig[courseKey]?.topics[0];
     if (firstTopic) {
       navigate(firstTopic.path);
     }
   };
 
-  const handleTopicCompleteToggle = (path) => {
-    if (completedTopics.includes(path)) {
-      setCompletedTopics((prev) => prev.filter((p) => p !== path));
-    } else {
-      setCompletedTopics((prev) => [...prev, path]);
+  const handleTopicCompleteToggle = async (path) => {
+    const isCompleted = completedTopics.includes(path);
+    const updatedTopics = isCompleted
+      ? completedTopics.filter((p) => p !== path)
+      : [...completedTopics, path];
+
+    setCompletedTopics(updatedTopics);
+    localStorage.setItem("completedTopics", JSON.stringify(updatedTopics));
+
+    if (user) {
+      try {
+        setSaveStatus("Saving...");
+        await userDataService.toggleProgress(path);
+        setSaveStatus("All changes saved");
+      } catch (error) {
+        console.error(error);
+        setSaveStatus("Offline - saved locally");
+      }
     }
   };
 
-  const handleNoteChange = (text) => {
+  const handleNoteChange = async (text) => {
     setSaveStatus("Saving...");
-    const updatedNotes = { ...notes, [currentPath]: text };
+    const updatedNotes = { ...notes, [topicPath]: text };
     setNotes(updatedNotes);
     localStorage.setItem("lms_notes", JSON.stringify(updatedNotes));
-    setTimeout(() => setSaveStatus("All changes saved"), 600);
+
+    if (user) {
+      try {
+        await userDataService.saveNote(topicPath, text);
+        setSaveStatus("All changes saved");
+      } catch (error) {
+        console.error(error);
+        setSaveStatus("Offline - saved locally");
+      }
+    } else {
+      setTimeout(() => setSaveStatus("All changes saved"), 600);
+    }
   };
 
-  const handleAnswerChange = (questionIndex, text) => {
+  const handleAnswerChange = async (questionIndex, text) => {
     setSaveStatus("Saving...");
-    const key = `${currentPath}_${questionIndex}`;
+    const key = `${topicPath}_${questionIndex}`;
     const updatedAnswers = { ...exerciseAnswers, [key]: text };
     setExerciseAnswers(updatedAnswers);
     localStorage.setItem("lms_answers", JSON.stringify(updatedAnswers));
-    setTimeout(() => setSaveStatus("All changes saved"), 600);
+
+    if (user) {
+      try {
+        await userDataService.saveAnswer(topicPath, questionIndex, text);
+        setSaveStatus("All changes saved");
+      } catch (error) {
+        console.error(error);
+        setSaveStatus("Offline - saved locally");
+      }
+    } else {
+      setTimeout(() => setSaveStatus("All changes saved"), 600);
+    }
   };
 
   // Verify if active route belongs to any topic
-  const isTopicPage = Object.values(coursesConfig).some((c) =>
+  const isTopicPage = Object.values(dynamicCoursesConfig).some((c) =>
     c.topics.some((t) => t.path === currentPath),
   );
 
-  const activeTopic = topicsContent[currentPath];
+  const getActiveTopic = () => {
+    const dbTopic = dbTopics.find((t) => t.topicId === topicPath);
+    if (dbTopic) return dbTopic;
+    return topicsContent[topicPath];
+  };
+
+  const activeTopic = getActiveTopic();
 
   return (
-    <div className="h-dvh w-screen overflow-hidden bg-base-100 text-base-content flex flex-col font-sans transition-colors duration-300">
-      {/* Mobile Slider Sidebar */}
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            {/* Backdrop Overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
-              exit={{ opacity: 0 }}
-              onClick={closeSidebar}
-              className="fixed inset-0 z-49 bg-neutral-950/80 lg:hidden"
-            />
-            {/* Sliding Drawer container */}
-            <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 left-0 bottom-0 z-50 w-80 bg-base-200 border-r border-base-300 lg:hidden flex flex-col shadow-2xl overflow-hidden"
-            >
-              <div className="flex justify-between items-center px-6 py-4 border-b border-base-300 bg-base-200 shrink-0">
-                <span className="text-sm font-black text-primary">
-                  {isTopicPage ? "Syllabus Menu" : "Choose a Subject"}
-                </span>
-                <button
-                  onClick={closeSidebar}
-                  className="btn btn-sm btn-circle btn-ghost border border-base-300 bg-base-100 font-bold"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                <Sidebar
-                  activeCourseKey={activeCourseKey}
-                  handleCourseChange={handleCourseChange}
-                  topicsList={topicsList}
-                  currentPath={currentPath}
-                  isTopicPage={isTopicPage}
-                  className="flex w-full border-none shadow-none"
-                />
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
+    <div className="h-screen w-screen overflow-hidden bg-base-100 text-base-content flex flex-col font-sans transition-colors duration-300">
       {/* Premium Sticky Header */}
       <Header saveStatus={saveStatus} theme={theme} toggleTheme={toggleTheme} />
 
       {/* Main LMS Dashboard Container */}
       <div className="flex flex-1 overflow-hidden h-[calc(100vh-4rem)]">
-        {/* Sidebar Navigation - only visible on topic pages */}
+        {/* Sidebar Navigation - Full width on mobile if no topic, else hidden on mobile */}
         {isTopicPage && (
           <Sidebar
             activeCourseKey={activeCourseKey}
@@ -327,16 +563,40 @@ const LMSLayout = ({ children }) => {
             topicsList={topicsList}
             currentPath={currentPath}
             isTopicPage={isTopicPage}
+            subjectsList={dbSubjects.length > 0 ? dbSubjects : defaultSubjects}
+            modulesList={dbModules}
+            className={`flex flex-col shrink-0 h-full min-h-0 bg-base-200 border-r border-base-300 z-10 transition-all duration-300 ${activeTopic ? "hidden lg:flex lg:w-80" : "flex w-full lg:w-80"}`}
           />
         )}
 
         {/* Content Workspace - Independently Scrolling */}
-        <main className="flex-1 overflow-y-auto flex flex-col bg-base-100 h-full">
+        <main
+          className={`flex-1 overflow-y-auto bg-base-100 h-full min-h-0 transition-all duration-300 ${isTopicPage && !activeTopic ? "hidden lg:flex flex-col" : "flex flex-col"}`}
+        >
           {isTopicPage && activeTopic ? (
             <div className="px-4 py-6 md:p-6 max-w-5xl mx-auto w-full flex flex-col gap-6">
               {/* Breadcrumbs & Header Details */}
               <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-xs text-base-content/60">
+                <div className="flex items-center gap-2 text-xs text-base-content/60 flex-wrap">
+                  <Link
+                    to={`/${moduleKey || "default"}/${subjectKey || "default"}`}
+                    className="flex lg:hidden items-center gap-1 font-bold text-primary mr-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m15 18-6-6 6-6" />
+                    </svg>
+                    Syllabus
+                  </Link>
                   <Link to="/" className="hover:text-primary">
                     LMS
                   </Link>
@@ -414,7 +674,12 @@ const LMSLayout = ({ children }) => {
               <div className="flex-1 mt-2">
                 {/* 1. LEARN TAB */}
                 {activeTab === "learn" && (
-                  <LearnTab activeTopic={activeTopic} />
+                  <LearnTab
+                    activeTopic={activeTopic}
+                    mySubmissions={mySubmissions}
+                    handleTaskSubmit={handleTaskSubmit}
+                    theme={theme}
+                  />
                 )}
 
                 {/* 2. LIVE DEMO TAB */}
@@ -430,10 +695,7 @@ const LMSLayout = ({ children }) => {
                       </div>
                     </div>
 
-                    <InteractiveSandbox
-                      defaultCode={activeTopic.syntax}
-                      theme={theme}
-                    />
+                    <Sandbox defaultCode={activeTopic.syntax} theme={theme} />
                   </div>
                 )}
 
@@ -442,7 +704,7 @@ const LMSLayout = ({ children }) => {
                   <PracticeTab
                     activeTopic={activeTopic}
                     exerciseAnswers={exerciseAnswers}
-                    currentPath={currentPath}
+                    currentPath={topicPath}
                     handleAnswerChange={handleAnswerChange}
                   />
                 )}
@@ -451,7 +713,7 @@ const LMSLayout = ({ children }) => {
                 {activeTab === "notes" && (
                   <NotebookTab
                     notes={notes}
-                    currentPath={currentPath}
+                    currentPath={topicPath}
                     handleNoteChange={handleNoteChange}
                   />
                 )}
@@ -464,7 +726,7 @@ const LMSLayout = ({ children }) => {
               />
             </div>
           ) : (
-            children
+            <Outlet />
           )}
         </main>
       </div>

@@ -1,67 +1,114 @@
-import React from "react";
-import { Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import Playground from "./pages/Playground";
+import React, { useEffect } from "react";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import Home from "./pages/student/Home";
+import Playground from "./pages/student/Playground";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import TeacherDashboard from "./pages/teacher/TeacherDashboard";
+import Login from "./pages/Login";
+import Profile from "./pages/common/Profile";
 import LMSLayout from "./components/layouts/LMSLayout";
 import { Scroll } from "./components/Scroll";
+import {
+  AdminSettingsPage,
+  AdminEvaluationsPage,
+} from "./pages/admin/AdminPages";
+import AdminUsers from "./pages/admin/AdminUsers";
+import { AdminCMSPage } from "./pages/admin/AdminCMSPage";
+
+import { useAuthStore } from "./store/useAuthStore";
+import Landing from "./pages/Landing";
 
 const Dummy = () => null;
 
 const App = () => {
+  const { fetchMe, user, loading } = useAuthStore();
+  useEffect(() => {
+    fetchMe();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-base-100">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
   return (
-    <>
+    <div className="h-dvh overflow-hidden">
       <Scroll />
-      <LMSLayout>
-        <Routes>
-          <Route path="/" element={<Home />} />
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route
+          element={
+            <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
+              <LMSLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/lms" element={<Home />} />
+        </Route>
+        {/* Pages inside the LMS student shell (header + sidebar) */}
+        <Route
+          element={
+            <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
+              <LMSLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/playground" element={<Playground />} />
+          <Route path="/:moduleKey/:subjectKey/*" element={<Dummy />} />
+          <Route path="/:moduleKey/:subjectKey" element={<Dummy />} />
+          <Route path="/:moduleKey" element={<Dummy />} />
+          <Route path="/*" element={<Dummy />} />
+        </Route>
 
-          {/* React Course Routes */}
-          <Route path="/introduction" element={<Dummy />} />
-          <Route path="/jsx" element={<Dummy />} />
-          <Route path="/components" element={<Dummy />} />
-          <Route path="/props" element={<Dummy />} />
-          <Route path="/state" element={<Dummy />} />
-          <Route path="/events" element={<Dummy />} />
-          <Route path="/forms" element={<Dummy />} />
-          <Route path="/useeffect" element={<Dummy />} />
-          <Route path="/useref" element={<Dummy />} />
-          <Route path="/usememo" element={<Dummy />} />
-          <Route path="/usecallback" element={<Dummy />} />
-          <Route path="/context-api" element={<Dummy />} />
-          <Route path="/react-router" element={<Dummy />} />
-          <Route path="/api-calls" element={<Dummy />} />
-          <Route path="/custom-hooks" element={<Dummy />} />
+        {/* Admin / Teacher portal — own shell, no LMS layout */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Outlet />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/admin/cms" replace />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
+          <Route path="cms" element={<AdminCMSPage />} />
+          <Route path="cms/:moduleId" element={<AdminCMSPage />} />
+          <Route path="cms/:moduleId/:subjectKey" element={<AdminCMSPage />} />
+          <Route
+            path="cms/:moduleId/:subjectKey/:topicId"
+            element={<AdminCMSPage />}
+          />
+          <Route path="evaluations" element={<AdminEvaluationsPage />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="profile" element={<Profile />} />
+        </Route>
+        <Route
+          path="/teacher"
+          element={
+            <ProtectedRoute allowedRoles={["teacher", "admin"]}>
+              <TeacherDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* JavaScript Course Routes */}
-          <Route path="/javascript/basics" element={<Dummy />} />
-          <Route path="/javascript/functions" element={<Dummy />} />
-          <Route path="/javascript/arrays-objects" element={<Dummy />} />
-          <Route path="/javascript/promises-async" element={<Dummy />} />
+        {/* Shared standalone pages */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute allowedRoles={["student", "teacher", "admin"]}>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Node.js Course Routes */}
-          <Route path="/node/intro" element={<Dummy />} />
-          <Route path="/node/modules" element={<Dummy />} />
-          <Route path="/node/fs-module" element={<Dummy />} />
-          <Route path="/node/http-module" element={<Dummy />} />
-
-          {/* Express Course Routes */}
-          <Route path="/express/routing" element={<Dummy />} />
-          <Route path="/express/middleware" element={<Dummy />} />
-          <Route path="/express/controllers" element={<Dummy />} />
-          <Route path="/express/error-handling" element={<Dummy />} />
-
-          {/* MongoDB Course Routes */}
-          <Route path="/mongodb/nosql-basics" element={<Dummy />} />
-
-          {/* Mongoose Course Routes */}
-          <Route path="/mongoose/schemas-models" element={<Dummy />} />
-
-          {/* Authentication Course Routes */}
-          <Route path="/authentation/jwt" element={<Dummy />} />
-        </Routes>
-      </LMSLayout>
-    </>
+        {/* Auth pages — no shell */}
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </div>
   );
 };
 

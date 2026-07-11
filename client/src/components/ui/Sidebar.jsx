@@ -1,55 +1,19 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { IoClose, IoLogoJavascript } from "react-icons/io5";
-import { FaReact, FaNodeJs, FaShieldAlt } from "react-icons/fa";
-import { SiExpress, SiMongodb, SiMongoosedotws } from "react-icons/si";
-import { Menu } from "lucide-react";
+import { IoClose } from "react-icons/io5";
+import * as FaIcons from "react-icons/fa";
+import * as IoIcons from "react-icons/io5";
+import * as SiIcons from "react-icons/si";
+import * as LuIcons from "lucide-react";
 import { useSidebarStore } from "../../store/useSidebarStore";
 
-const subjects = [
-  {
-    key: "javascript",
-    title: "JavaScript Basics",
-    icon: IoLogoJavascript,
-    iconColor: "text-yellow-500",
-  },
-  {
-    key: "react",
-    title: "React Masterclass",
-    icon: FaReact,
-    iconColor: "text-blue-500",
-  },
-  {
-    key: "node",
-    title: "Node.js Server",
-    icon: FaNodeJs,
-    iconColor: "text-green-500",
-  },
-  {
-    key: "express",
-    title: "Express API Framework",
-    icon: SiExpress,
-    iconColor: "text-purple-500",
-  },
-  {
-    key: "mongodb",
-    title: "MongoDB NoSQL",
-    icon: SiMongodb,
-    iconColor: "text-emerald-600",
-  },
-  {
-    key: "mongoose",
-    title: "Mongoose ODM",
-    icon: SiMongoosedotws,
-    iconColor: "text-orange-500",
-  },
-  {
-    key: "authentation",
-    title: "Auth & Session JWT",
-    icon: FaShieldAlt,
-    iconColor: "text-gray-500",
-  },
-];
+const getIconComponent = (iconName) => {
+  if (FaIcons[iconName]) return FaIcons[iconName];
+  if (IoIcons[iconName]) return IoIcons[iconName];
+  if (SiIcons[iconName]) return SiIcons[iconName];
+  if (LuIcons[iconName]) return LuIcons[iconName];
+  return LuIcons.BookOpen;
+};
 
 const Sidebar = ({
   activeCourseKey,
@@ -58,35 +22,54 @@ const Sidebar = ({
   currentPath,
   className,
   isTopicPage = true,
+  subjectsList = [],
+  modulesList = [],
 }) => {
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
+
+  // Group subjects by their module — subjects without a module go into "General"
+  const grouped = (() => {
+    if (modulesList.length === 0) {
+      return [{ module: null, subjects: subjectsList }];
+    }
+    const result = [];
+    for (const mod of modulesList) {
+      const subs = subjectsList.filter(
+        (s) => s.module && (s.module._id === mod._id || s.module === mod._id),
+      );
+      if (subs.length > 0) result.push({ module: mod, subjects: subs });
+    }
+    const unassigned = subjectsList.filter((s) => !s.module);
+    if (unassigned.length > 0) result.push({ module: null, subjects: unassigned });
+    return result;
+  })();
+
   return (
     <aside
-      className={`absolute md:static top-0 z-50 w-80 bg-base-200 border-r border-base-300 flex flex-col shrink-0 overflow-y-auto h-full ${className || "hidden lg:flex animate-slideIn"}`}
+      className={className || "absolute md:static top-0 z-50 w-80 bg-base-200 border-r border-base-300 flex flex-col shrink-0 h-full hidden lg:flex animate-slideIn"}
     >
       <>
         <header className="md:hidden h-16 bg-base-200/90 backdrop-blur-md border-b border-base-300 px-6 py-4 flex items-center justify-between shrink-0 z-40">
           <div className="flex items-center gap-1">
             <Link to="/" className="flex items-center gap-2 group">
-              <span className="text-3xl animate-bounce"></span>
-              <div>
-                <h1 className="text-xl font-black text-primary group-hover:scale-105 transition-transform">
-                  LMS
-                </h1>
-              </div>
+              <span className="text-3xl animate-bounce">📚</span>
+              <h1 className="text-xl font-black text-primary group-hover:scale-105 transition-transform">
+                LMS
+              </h1>
             </Link>
           </div>
           <button
             onClick={toggleSidebar}
             className="lg:hidden btn btn-square btn-ghost border border-base-300 bg-base-100 hover:bg-base-200"
-            aria-label="Open menu"
+            aria-label="Close menu"
           >
             <IoClose size={20} className="text-base-content" />
           </button>
         </header>
+
         {isTopicPage ? (
           <>
-            {/* Syllabus Course Selector */}
+            {/* Subject selector with module grouping */}
             <div className="p-4 border-b border-base-300 bg-base-200/50 flex flex-col gap-2 shrink-0">
               <label className="text-[10px] font-black tracking-wider text-base-content/60 uppercase">
                 Select learning path
@@ -96,20 +79,29 @@ const Sidebar = ({
                 value={activeCourseKey}
                 onChange={(e) => handleCourseChange(e.target.value)}
               >
-                <option value="javascript">JavaScript Basics</option>
-                <option value="react">React Masterclass</option>
-                <option value="node">Node.js Server</option>
-                <option value="express">Express API Framework</option>
-                <option value="mongodb">MongoDB NoSQL</option>
-                <option value="mongoose">Mongoose ODM</option>
-                <option value="authentation">Auth & Session JWT</option>
+                {grouped.map(({ module, subjects }) => (
+                  module ? (
+                    <optgroup key={module._id} label={module.title}>
+                      {subjects.map((subj) => (
+                        <option key={subj.key} value={subj.key}>
+                          {subj.title}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : (
+                    subjects.map((subj) => (
+                      <option key={subj.key} value={subj.key}>
+                        {subj.title}
+                      </option>
+                    ))
+                  )
+                ))}
               </select>
             </div>
 
             <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
               {topicsList.map((topic, index) => {
                 const isActive = currentPath === topic.path;
-
                 return (
                   <div
                     key={topic.path}
@@ -142,27 +134,40 @@ const Sidebar = ({
             </nav>
           </>
         ) : (
-          <>
-            <nav className="flex-1 p-3 space-y-2 overflow-y-auto">
-              {subjects.map((subj) => {
-                const Icon = subj.icon;
-                return (
-                  <button
-                    key={subj.key}
-                    onClick={() => handleCourseChange(subj.key)}
-                    className="w-full text-left group flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-base-300/80 bg-transparent text-base-content/80"
-                  >
-                    <span className="text-xl p-1.5 bg-base-100 rounded-lg shadow-inner border border-base-300/40 w-fit shrink-0">
-                      <Icon className={subj.iconColor} />
+          /* Home page — show all modules with their subjects */
+          <nav className="flex-1 p-3 overflow-y-auto">
+            {grouped.map(({ module, subjects }, gIdx) => (
+              <div key={module?._id ?? "unassigned"} className={gIdx > 0 ? "mt-4" : ""}>
+                {module && (
+                  <div className="px-2 py-1.5 mb-2 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                    <span className="text-[10px] font-black tracking-wider text-primary uppercase truncate">
+                      {module.title}
                     </span>
-                    <span className="truncate text-sm font-bold group-hover:text-primary transition-colors">
-                      {subj.title}
-                    </span>
-                  </button>
-                );
-              })}
-            </nav>
-          </>
+                  </div>
+                )}
+                <div className="space-y-1">
+                  {subjects.map((subj) => {
+                    const Icon = getIconComponent(subj.icon);
+                    return (
+                      <button
+                        key={subj.key}
+                        onClick={() => handleCourseChange(subj.key)}
+                        className="w-full text-left group flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-base-300/80 bg-transparent text-base-content/80"
+                      >
+                        <span className="text-xl p-1.5 bg-base-100 rounded-lg shadow-inner border border-base-300/40 w-fit shrink-0">
+                          <Icon className={subj.iconColor || "text-primary"} />
+                        </span>
+                        <span className="truncate text-sm font-bold group-hover:text-primary transition-colors">
+                          {subj.title}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </nav>
         )}
       </>
     </aside>
