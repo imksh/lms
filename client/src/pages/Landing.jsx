@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import LmsImage from "../assets/images/lms.png";
+import ShivKumarSharma from "../assets/images/shivKumarSharma.png";
 import {
   GraduationCap,
   ArrowRight,
@@ -780,13 +781,17 @@ const Landing = () => {
           <div className="card border border-base-300/80 bg-base-100/60 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
             <div className="flex flex-col items-center text-center gap-6 max-w-2xl mx-auto">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                <Heart size={20} className="fill-primary/20" />
+              <div className="w-48 h-48 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <img
+                  src={ShivKumarSharma}
+                  alt="Shiv Kumar Sharma"
+                  className="w-full h-full object-cover rounded-full"
+                />
               </div>
 
               <div className="space-y-2">
                 <span className="text-[10px] font-black uppercase text-primary tracking-widest">
-                  Our Philosophy
+                  Shiv Kumar Sharma
                 </span>
                 <h3 className="text-2xl md:text-3xl font-black text-base-content">
                   Dedicated to a Teacher

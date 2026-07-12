@@ -11,6 +11,10 @@ LMS is a highly interactive, premium web application designed to help developers
 - **📱 Responsive Mobile Support**: A dedicated mobile interface featuring dynamic sliding drawers, an adaptive header, and a bottom navigation menu to switch pages/subjects easily.
 - **📝 Built-in Rich-Text Notebook**: Take notes directly within the LMS as you learn. Notes are saved automatically to local storage.
 - **💡 Practice Workspace**: Test your knowledge with practice questions for each topic.
+- **🛡️ Role-Based Access Control**: Admins and Teachers can log in. Teachers are restricted to securely managing and evaluating only their assigned modules.
+- **🛠️ Dynamic CMS Dashboard**: Fully functional Admin Panel where courses, subjects, and topics can be created, updated, and reordered using a drag-and-drop interface. Uses `@imksh/editor` for rich-text authoring.
+- **🎓 Student Evaluations**: Teachers and admins can seamlessly review, grade, and provide feedback on paginated student submissions.
+- **⚡ Zustand Local Caching**: Highly optimized data fetching layer built with Zustand that intelligently caches API data, making app navigation instantaneous.
 - **🔄 Custom Scroll Restoration**: Custom-built page scroll management designed for layout-level scrolling containers.
 - **🌓 Dark/Light Mode**: Smooth theme toggling that persists across page reloads.
 
@@ -22,26 +26,26 @@ LMS is a highly interactive, premium web application designed to help developers
 ├── client/
 │   ├── public/              # Static assets and PWA manifest
 │   ├── src/
-│   │   ├── assets/          # Data files (e.g., topicsContent.js)
 │   │   ├── components/      # UI components (Header, Sidebar, Sandbox, Tabs)
-│   │   ├── layouts/         # Layout components (LMSLayout)
-│   │   ├── pages/           # Pages (Home, Playground)
+│   │   │   └── admin/       # CMS Modals, List views, and Topic Editor
+│   │   ├── layouts/         # Layout components (LMSLayout, AdminLayout)
+│   │   ├── pages/           # Pages (Home, Playground, AdminCMSPage, AdminUsers)
+│   │   ├── services/        # API layer (cmsService, submissionService, userService)
 │   │   ├── store/           # Zustand stores for auth, sidebar and layout state
+│   │   ├── stores/          # Zustand store for local API caching (useCacheStore)
 │   │   ├── App.jsx          # Root application component and React Router setup
 │   │   └── main.jsx         # Application entry point
 │   ├── package.json         # Project dependencies and script targets
 │   └── vite.config.js       # Vite configuration (with API proxy)
 ├── server/
 │   ├── src/
-│   │   ├── controllers/     # HTTP request controllers (auth, notes, progress, answers)
-│   │   ├── middleware/      # Router preprocessors (JWT auth, global error handler)
-│   │   ├── models/          # Mongoose database schemas (User, Note, Progress, Answer)
+│   │   ├── controllers/     # HTTP request controllers (auth, cms, module, submission)
+│   │   ├── middleware/      # Router preprocessors (JWT auth, role-based admin filtering)
+│   │   ├── models/          # Mongoose database schemas (User, Topic, Subject, Module, Submission)
 │   │   ├── routes/          # Express route bindings
-│   │   ├── services/        # Database query layers & business logic
 │   │   ├── utils/           # Mongoose connect, JWT signature helpers
 │   │   ├── app.js           # Express app configuring CORS, json parsing, endpoints
 │   │   └── index.js         # Entry server listener
-│   ├── test/                # Integration endpoints tests (api.test.js) using Jest ESM
 │   ├── package.json         # Server scripts (dev, test, start) and requirements
 │   └── .env                 # Server configuration env variables
 └── README.md                # Project documentation
@@ -112,10 +116,3 @@ LMS is a highly interactive, premium web application designed to help developers
 - **Database**: MongoDB, Mongoose ODM
 - **Security**: JSON Web Tokens (JWT), bcryptjs password hashing
 - **Testing**: Jest, Supertest
-
----
-
-## 🔮 Future Roadmap
-
-- **Admin Dashboard**: Dedicated admin panels for creators to manage courses, view learner analytics, and modify curriculum structure.
-- **Dynamic Course Content**: Rich-text authoring using the customized [@imksh/editor](https://www.npmjs.com/package/@imksh/editor) for creating and updating study material dynamically from the UI.
