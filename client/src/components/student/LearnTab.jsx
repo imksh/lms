@@ -68,7 +68,7 @@ const LearnTab = ({
                 </h3>
               )}
               <div
-                className="text-base-content/90 leading-loose text-[15px] prose prose-sm max-w-none"
+                className="text-base-content/90 leading-loose text-[15px] prose prose-sm max-w-none overflow-x-hidden"
                 dangerouslySetInnerHTML={{ __html: section.content }}
               />
             </div>
