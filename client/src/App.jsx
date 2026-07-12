@@ -23,8 +23,10 @@ import SubjectPage from "./pages/student/SubjectPage";
 import TopicFallbackPage from "./pages/student/TopicFallbackPage";
 import { ConfirmProvider } from "./contexts/ConfirmContext";
 import Loading from "./components/Loading";
+import { useThemeColor } from "./hooks/useThemeColor";
 
 const App = () => {
+  useThemeColor();
   const { fetchMe, user, loading } = useAuthStore();
   useEffect(() => {
     fetchMe();
