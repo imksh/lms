@@ -1,11 +1,20 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, GraduationCap } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  GraduationCap,
+} from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
+import Loading from "../components/Loading";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, signup, loading, error } = useAuthStore();
+  const { login, signup, loading, error, user } = useAuthStore();
 
   const [mode, setMode] = useState("login"); // "login" | "signup"
   const [showPassword, setShowPassword] = useState(false);
@@ -25,9 +34,12 @@ const Login = () => {
     if (ok) navigate("/");
   };
 
+  if (loading || user) {
+    return <Loading />;
+  }
+
   return (
     <div className="min-h-dvh w-screen bg-base-100 text-base-content flex items-center justify-center p-4 font-sans">
-    
       <div className="relative w-full max-w-md">
         {/* Back link */}
         <Link

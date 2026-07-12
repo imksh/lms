@@ -403,7 +403,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const runDirectly = async () => {
     try {
       const mongoUri =
-        process.env.MONGODB_URI || "mongodb://localhost:27017/lms";
+        process.env.MONGODB_URI;
       await mongoose.connect(mongoUri);
       console.log("Connected to MongoDB for direct seeding...");
 

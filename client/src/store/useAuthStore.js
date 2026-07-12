@@ -10,6 +10,9 @@ export const useAuthStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await authService.signup(name, email, password, role);
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
       set({
         user: data,
         loading: false,
@@ -30,6 +33,9 @@ export const useAuthStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { data } = await authService.login(email, password);
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
       set({
         user: data,
         loading: false,
@@ -81,6 +87,7 @@ export const useAuthStore = create((set, get) => ({
     } catch (_) {
       // ignore errors — cookie may already be expired
     } finally {
+      localStorage.removeItem("token");
       set({ loading: false });
     }
     set({

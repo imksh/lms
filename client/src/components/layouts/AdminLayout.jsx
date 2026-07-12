@@ -47,14 +47,14 @@ const AdminLayout = ({ children, actions, breadcrumbs, title }) => {
           id: "cms",
           label: "CMS",
           icon: Layers,
-          color: "text-blue-400",
+          color: "text-primary",
           roles: ["admin", "teacher"],
         },
         {
           id: "evaluations",
           label: "Evaluations",
           icon: Inbox,
-          color: "text-rose-400",
+          color: "text-primary",
           roles: ["admin", "teacher"],
         },
 
@@ -64,7 +64,7 @@ const AdminLayout = ({ children, actions, breadcrumbs, title }) => {
                 id: "users",
                 label: "Users",
                 icon: Users,
-                color: "text-cyan-400",
+                color: "text-primary",
                 roles: ["admin"],
               },
             ]
@@ -73,21 +73,21 @@ const AdminLayout = ({ children, actions, breadcrumbs, title }) => {
           id: "profile",
           label: "Profile",
           icon: User,
-          color: "text-indigo-400",
+          color: "text-primary",
           roles: ["admin", "teacher"],
         },
         {
           id: "settings",
           label: "App Settings",
           icon: Settings,
-          color: "text-violet-400",
+          color: "text-primary",
           roles: ["admin"],
         },
         {
           id: "",
           label: "LMS",
           icon: Home,
-          color: "text-green-400",
+          color: "text-primary",
           roles: ["admin", "teacher"],
         },
       ],
@@ -165,7 +165,7 @@ const AdminLayout = ({ children, actions, breadcrumbs, title }) => {
       <div
         className={`flex items-center gap-3 px-4 py-5 border-b border-base-300/50 shrink-0 ${collapsed ? "justify-center" : ""}`}
       >
-        <div className="w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
+        <div className={`w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 ${collapsed?"mr-auto":""}`}>
           <GraduationCap size={16} className="text-primary" />
         </div>
         {!collapsed && (
@@ -173,9 +173,9 @@ const AdminLayout = ({ children, actions, breadcrumbs, title }) => {
             <p className="text-sm font-black text-primary truncate">
               LMS Admin
             </p>
-            <p className="text-[10px] text-base-content/40 truncate">
+            {/* <p className="text-[10px] text-base-content/40 truncate">
               {isAdmin ? "Administrator" : "Teacher"} Panel
-            </p>
+            </p> */}
           </div>
         )}
       </div>
@@ -219,7 +219,7 @@ const AdminLayout = ({ children, actions, breadcrumbs, title }) => {
           title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
           {collapsed ? (
-            <ChevronRight size={18} className="shrink-0" />
+            <ChevronRight size={18} className="shrink-0 mr-auto" />
           ) : (
             <ChevronLeft size={18} className="shrink-0" />
           )}

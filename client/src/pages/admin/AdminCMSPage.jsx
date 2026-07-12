@@ -176,11 +176,14 @@ export const AdminCMSPage = () => {
         setSubjects(useCacheStore.getState().subjects);
         return;
       }
+      setLoading(true);
       const { data } = await cmsService.getSubjects();
       setSubjects(data);
       useCacheStore.getState().setSubjects(data);
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -191,11 +194,14 @@ export const AdminCMSPage = () => {
         setTopics(useCacheStore.getState().topicsBySubject[key]);
         return;
       }
+      setLoading(true);
       const { data } = await cmsService.getTopics({ subjectKey: key });
       setTopics(data);
       useCacheStore.getState().setTopicsForSubject(key, data);
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -211,11 +217,53 @@ export const AdminCMSPage = () => {
   }, [subjectKey, fetchTopics]);
 
   useEffect(() => {
-    if (topicId && topics.length > 0) {
+    if (!topicId) {
+      setTopicForm({
+        subjectKey: "",
+        topicId: "",
+        title: "",
+        difficulty: "Beginner",
+        duration: "10 mins",
+        playgroundCode: "",
+        quiz: [],
+        sections: [],
+        order: 0,
+        playgroundEnabled: false,
+      });
+      return;
+    }
+
+    if (topics.length > 0) {
       const found = topics.find((t) => t.topicId === topicId);
       if (found) {
         setTopicForm(found);
+      } else {
+        setTopicForm({
+          subjectKey: "",
+          topicId: "",
+          title: "",
+          difficulty: "Beginner",
+          duration: "10 mins",
+          playgroundCode: "",
+          quiz: [],
+          sections: [],
+          order: 0,
+          playgroundEnabled: false,
+        });
       }
+    } else {
+      setTopicForm({
+        subjectKey: "",
+        topicId: "",
+        title: "",
+        difficulty: "Beginner",
+        duration: "10 mins",
+        playgroundCode: "",
+        quiz: [],
+        sections: [],
+        order: 0,
+        playgroundEnabled: false,
+      });
     }
   }, [topicId, topics]);
 
@@ -525,7 +573,7 @@ export const AdminCMSPage = () => {
               {modules.length > 1 && (
                 <button
                   onClick={() => setIsReorderingModules(true)}
-                  className="btn btn-sm btn-outline font-bold flex gap-2 items-center"
+                  className="btn btn-sm btn-outline font-bold flex gap-2 items-center text-base-content border-base-300"
                 >
                   <ArrowRightLeft size={14} className="rotate-90" />
                   {size.width > 648 && "Reorder"}
@@ -575,7 +623,7 @@ export const AdminCMSPage = () => {
               {subjects.length > 1 && (
                 <button
                   onClick={() => setIsReorderingSubjects(true)}
-                  className="btn btn-sm btn-outline font-bold flex gap-2 items-center"
+                  className="btn btn-sm btn-outline font-bold flex gap-2 items-center text-base-content border-base-300"
                 >
                   <ArrowRightLeft size={14} className="rotate-90" />
                   {size.width > 648 && "Reorder"}
@@ -625,7 +673,7 @@ export const AdminCMSPage = () => {
               {topics.length > 1 && (
                 <button
                   onClick={() => setIsReorderingTopics(true)}
-                  className="btn btn-sm btn-outline font-bold flex gap-2 items-center"
+                  className="btn btn-sm btn-outline font-bold flex gap-2 items-center text-base-content border-base-300"
                 >
                   <ArrowRightLeft size={14} className="rotate-90" />
                   {size.width > 648 && "Reorder"}

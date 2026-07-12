@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import lottie from "lottie-web";
 import animationData from "../assets/animations/loadingWave.json";
 
-const Loading = ({ size = "w-60 h-60", bgClass = "bg-white" }) => {
+const Loading = ({ size = "w-60 h-60", bgClass = "bg-base-100" }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const Loading = ({ size = "w-60 h-60", bgClass = "bg-white" }) => {
 
   return (
     <div
-      className={`absolute inset-0 flex items-center justify-center ${bgClass}`}
+      className={`absolute inset-0 flex items-center justify-center z-50 ${bgClass} max-h-dvh`}
     >
       <div ref={containerRef} className={size} />
     </div>

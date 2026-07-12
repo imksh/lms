@@ -299,7 +299,7 @@ const Landing = () => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
-  if (loading) {
+  if (loading || user) {
     return <Loading />;
   }
 

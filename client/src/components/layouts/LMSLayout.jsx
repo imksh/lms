@@ -382,17 +382,23 @@ const LMSLayout = () => {
     }
   };
 
-  // Verify if active route belongs to any topic
-  const isTopicPage = Object.values(dynamicCoursesConfig).some((c) =>
-    c.topics.some((t) => t.path === currentPath),
-  );
-
   const getActiveTopic = () => {
-    const dbTopic = dbTopics.find((t) => t.topicId === topicPath);
+    const dbTopic = dbTopics.find((t) => {
+      const dbId = t.topicId.replace(/^\//, "");
+      const pathId = decodeURIComponent(topicPath).replace(/^\//, "");
+      // Ensure the topic belongs to the correct subject if subjectKey is present
+      const matchesSubject = subjectKey ? t.subjectKey === subjectKey : true;
+      return dbId === pathId && matchesSubject;
+    });
     return dbTopic;
   };
 
   const activeTopic = getActiveTopic();
+
+  // Verify if active route belongs to any topic
+  const isTopicPage = !!activeTopic || Object.values(dynamicCoursesConfig).some((c) =>
+    c.topics.some((t) => t.path === decodeURIComponent(currentPath) || t.path === currentPath),
+  );
 
   if (loading.syllabus || loading.userData) {
     return <Loading />;

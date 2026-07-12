@@ -1,5 +1,6 @@
 import Module from "../models/module.model.js";
 import Subject from "../models/subject.model.js";
+import Topic from "../models/topic.model.js";
 
 // GET /api/modules — returns modules the user can access
 // - admin/teacher: all modules
@@ -121,11 +122,17 @@ export const deleteModule = async (req, res, next) => {
   try {
     const mod = await Module.findByIdAndDelete(req.params.id);
     if (!mod) return res.status(404).json({ message: "Module not found" });
-    // Unlink subjects (don't cascade-delete, just detach)
-    await Subject.updateMany({ module: mod._id }, { $unset: { module: 1 } });
+    
+    // Cascade delete subjects and their topics
+    const subjects = await Subject.find({ module: mod._id });
+    for (const sub of subjects) {
+      await Topic.deleteMany({ subjectKey: sub.key });
+      await Subject.findByIdAndDelete(sub._id);
+    }
+    
     return res
       .status(200)
-      .json({ message: "Module deleted, subjects detached" });
+      .json({ message: "Module, associated subjects, and topics deleted successfully" });
   } catch (error) {
     return next(error);
   }

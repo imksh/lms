@@ -68,10 +68,10 @@ const TopicsList = ({
                       <p className="font-extrabold text-sm truncate">{t.title}</p>
                     </div>
                     <div className="flex gap-2 mt-3 flex-wrap">
-                      <span className="badge badge-outline text-[10px] py-1">
+                      <span className="badge badge-outline text-[10px] py-1 text-base-content border-base-300">
                         {t.difficulty}
                       </span>
-                      <span className="badge badge-outline text-[10px] py-1">
+                      <span className="badge badge-outline text-[10px] py-1 text-base-content border-base-300">
                         {t.duration}
                       </span>
                     </div>
