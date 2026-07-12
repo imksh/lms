@@ -109,15 +109,33 @@ const LMSLayout = () => {
       try {
         setLoading((prev) => ({ ...prev, syllabus: true }));
         const state = useCacheStore.getState();
-        
+
         let mods = state.modules;
         let subs = state.subjects;
         let tops = state.allTopics;
 
         const promises = [];
-        if (!mods) promises.push(cmsService.getModules().then(res => { mods = res.data; useCacheStore.getState().setModules(mods); }));
-        if (!subs) promises.push(cmsService.getSubjects().then(res => { subs = res.data; useCacheStore.getState().setSubjects(subs); }));
-        if (!tops) promises.push(cmsService.getTopics().then(res => { tops = res.data; useCacheStore.getState().setAllTopics(tops); }));
+        if (!mods)
+          promises.push(
+            cmsService.getModules().then((res) => {
+              mods = res.data;
+              useCacheStore.getState().setModules(mods);
+            }),
+          );
+        if (!subs)
+          promises.push(
+            cmsService.getSubjects().then((res) => {
+              subs = res.data;
+              useCacheStore.getState().setSubjects(subs);
+            }),
+          );
+        if (!tops)
+          promises.push(
+            cmsService.getTopics().then((res) => {
+              tops = res.data;
+              useCacheStore.getState().setAllTopics(tops);
+            }),
+          );
 
         if (promises.length > 0) {
           await Promise.all(promises);
@@ -197,15 +215,17 @@ const LMSLayout = () => {
     sectionIndex,
     submissionType,
     contentText,
+    targetTopicId = null,
   ) => {
     if (!user) {
       toast.error("Please log in to submit tasks for evaluation.");
       return false;
     }
+    const finalTopicId = targetTopicId || topicPath;
     setSaveStatus("Submitting...");
     try {
       const { data } = await submissionService.submit(
-        topicPath,
+        finalTopicId,
         sectionIndex,
         submissionType,
         contentText,
@@ -213,7 +233,8 @@ const LMSLayout = () => {
 
       setMySubmissions((prev) => {
         const filtered = prev.filter(
-          (s) => !(s.topicId === topicPath && s.sectionIndex === sectionIndex),
+          (s) =>
+            !(s.topicId === finalTopicId && s.sectionIndex === sectionIndex),
         );
         return [...filtered, data];
       });
@@ -399,9 +420,14 @@ const LMSLayout = () => {
   const activeTopic = getActiveTopic();
 
   // Verify if active route belongs to any topic
-  const isTopicPage = !!activeTopic || Object.values(dynamicCoursesConfig).some((c) =>
-    c.topics.some((t) => t.path === decodeURIComponent(currentPath) || t.path === currentPath),
-  );
+  const isTopicPage =
+    !!activeTopic ||
+    Object.values(dynamicCoursesConfig).some((c) =>
+      c.topics.some(
+        (t) =>
+          t.path === decodeURIComponent(currentPath) || t.path === currentPath,
+      ),
+    );
 
   if (loading.syllabus || loading.userData) {
     return <Loading />;
@@ -517,52 +543,53 @@ const LMSLayout = () => {
               </div>
 
               {/* LMS Tabs */}
-              <div className="w-full flex justify-center items-center sticky md:static top-0 z-50 bg-base-100 py-2 md:py-0">
-              <div className="tabs  mx-auto tabs-box bg-base-200 p-1 rounded-2xl w-fit flex gap-1 border border-base-300">
-                <button
-                  onClick={() => setActiveTab("learn")}
-                  className={`tab tab-sm rounded-xl px-4 md:px-5 text-sm md:text-base font-bold transition-all  ${
-                    activeTab === "learn"
-                      ? "tab-active bg-primary text-primary-content!"
-                      : ""
-                  }`}
-                >
-                  Learn
-                </button>
-                {activeTopic.playgroundEnabled && (
+              <div className="w-full flex justify-center items-center sticky md:static top-0 z-20 bg-base-100 py-2 md:py-0">
+                <div className="tabs  mx-auto tabs-box bg-base-200 p-1 rounded-2xl w-fit flex gap-1 border border-base-300">
                   <button
-                    onClick={() => setActiveTab("demo")}
-                    className={`tab tab-sm rounded-xl px-4 md:px-5 text-sm md:text-base font-bold transition-all ${
-                      activeTab === "demo"
+                    onClick={() => setActiveTab("learn")}
+                    className={`tab tab-sm rounded-xl px-4 md:px-5 text-sm md:text-base font-bold transition-all  ${
+                      activeTab === "learn"
                         ? "tab-active bg-primary text-primary-content!"
                         : ""
                     }`}
                   >
-                    Playground
+                    Learn
                   </button>
-                )}
-                <button
-                  onClick={() => setActiveTab("practice")}
-                  className={`tab tab-sm rounded-xl px-4 md:px-5 text-sm md:text-base font-bold transition-all ${
-                    activeTab === "practice"
-                      ? "tab-active bg-primary text-primary-content!"
-                      : ""
-                  }`}
-                >
-                  Practice
-                </button>
-                <button
-                  onClick={() => setActiveTab("notes")}
-                  className={`tab tab-sm rounded-xl px-4 md:px-5 text-sm md:text-base font-bold transition-all ${
-                    activeTab === "notes"
-                      ? "tab-active bg-primary text-primary-content!"
-                      : ""
-                  }`}
-                >
-                  <span className="hidden md:flex">Notebook</span>{" "}
-                  <span className="flex md:hidden">Note</span>
-                </button>
-              </div></div>
+                  {activeTopic.playgroundEnabled && (
+                    <button
+                      onClick={() => setActiveTab("demo")}
+                      className={`tab tab-sm rounded-xl px-4 md:px-5 text-sm md:text-base font-bold transition-all ${
+                        activeTab === "demo"
+                          ? "tab-active bg-primary text-primary-content!"
+                          : ""
+                      }`}
+                    >
+                      Playground
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setActiveTab("practice")}
+                    className={`tab tab-sm rounded-xl px-4 md:px-5 text-sm md:text-base font-bold transition-all ${
+                      activeTab === "practice"
+                        ? "tab-active bg-primary text-primary-content!"
+                        : ""
+                    }`}
+                  >
+                    Practice
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("notes")}
+                    className={`tab tab-sm rounded-xl px-4 md:px-5 text-sm md:text-base font-bold transition-all ${
+                      activeTab === "notes"
+                        ? "tab-active bg-primary text-primary-content!"
+                        : ""
+                    }`}
+                  >
+                    <span className="hidden md:flex">Notebook</span>{" "}
+                    <span className="flex md:hidden">Note</span>
+                  </button>
+                </div>
+              </div>
 
               {/* Tab Contents */}
               <div className="flex-1 mt-2">

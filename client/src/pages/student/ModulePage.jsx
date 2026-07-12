@@ -2,22 +2,60 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { cmsService } from "../../services/cmsService";
 import { BookOpen } from "lucide-react";
+import Loading from "../../components/Loading";
+import { useCacheStore } from "../../stores/useCacheStore";
 
 const ModulePage = () => {
   const { moduleKey } = useParams();
-  const [subjects, setSubjects] = useState([]);
+  const [subjects, setLocalSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [moduleTitle, setModuleTitle] = useState(moduleKey);
+
+  const cachedSubjects = useCacheStore((state) => state.subjects);
+  const setCacheSubjects = useCacheStore((state) => state.setSubjects);
+  const cachedModules = useCacheStore((state) => state.modules);
+  const setCacheModules = useCacheStore((state) => state.setModules);
 
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        const { data } = await cmsService.getSubjects();
+        let subsData = cachedSubjects;
+        if (!subsData) {
+          const { data } = await cmsService.getSubjects();
+          subsData = data;
+          setCacheSubjects(data);
+        }
+
+        let modsData = cachedModules;
+        if (!modsData) {
+          const { data } = await cmsService.getModules();
+          modsData = data;
+          setCacheModules(data);
+        }
+
+        const currentMod = modsData.find(
+          (m) =>
+            m.path === `/${moduleKey}` ||
+            m.path === moduleKey ||
+            m.key === moduleKey ||
+            m._id === moduleKey
+        );
+        if (currentMod && currentMod.title) {
+          setModuleTitle(currentMod.title);
+        }
+
         // Try to filter subjects that belong to this module
-        const filtered = data.filter((s) => {
+        const filtered = subsData.filter((s) => {
           const m = s.module;
-          return m && (m.path === `/${moduleKey}` || m.path === moduleKey || m.key === moduleKey || m._id === moduleKey);
+          return (
+            m &&
+            (m.path === `/${moduleKey}` ||
+              m.path === moduleKey ||
+              m.key === moduleKey ||
+              m._id === moduleKey)
+          );
         });
-        setSubjects(filtered.length > 0 ? filtered : data);
+        setLocalSubjects(filtered.length > 0 ? filtered : subsData);
       } catch (err) {
         console.error(err);
       } finally {
@@ -25,12 +63,12 @@ const ModulePage = () => {
       }
     };
     fetchSubjects();
-  }, [moduleKey]);
+  }, [moduleKey, cachedSubjects, cachedModules, setCacheSubjects, setCacheModules]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <span className="loading loading-spinner text-primary"></span>
+        <Loading />
       </div>
     );
   }
@@ -38,8 +76,10 @@ const ModulePage = () => {
   return (
     <div className="px-2 py-8 md:p-8 max-w-5xl mx-auto w-full flex flex-col gap-6 animate-fadeIn">
       <div className="flex flex-col gap-2">
-        <h2 className="text-3xl font-extrabold capitalize">Module: {moduleKey}</h2>
-        <p className="text-base-content/70">Select a subject to continue learning.</p>
+        <h2 className="text-3xl font-extrabold capitalize">Module: {moduleTitle}</h2>
+        <p className="text-base-content/70">
+          Select a subject to continue learning.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">

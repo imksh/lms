@@ -1,28 +1,52 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { cmsService } from "../../services/cmsService";
-import { Layers } from "lucide-react";
+import { ArrowLeft, Layers } from "lucide-react";
+import { useCacheStore } from "../../stores/useCacheStore";
 
 const SubjectPage = () => {
   const { moduleKey, subjectKey } = useParams();
-  const [topics, setTopics] = useState([]);
+  const [topics, setLocalTopics] = useState([]);
   const [subjectTitle, setSubjectTitle] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const cachedSubjects = useCacheStore((state) => state.subjects);
+  const setCacheSubjects = useCacheStore((state) => state.setSubjects);
+  const cachedTopics = useCacheStore((state) => state.allTopics);
+  const setCacheTopics = useCacheStore((state) => state.setAllTopics);
+
   useEffect(() => {
     const fetchTopics = async () => {
       try {
-        const [subsRes, topsRes] = await Promise.all([
-          cmsService.getSubjects(),
-          cmsService.getTopics(),
-        ]);
-        
-        const subj = subsRes.data.find(s => s.key === subjectKey);
+        let subsData = cachedSubjects;
+        let topsData = cachedTopics;
+
+        const promises = [];
+        if (!subsData) {
+          promises.push(cmsService.getSubjects().then((res) => {
+            subsData = res.data;
+            setCacheSubjects(subsData);
+          }));
+        }
+        if (!topsData) {
+          promises.push(cmsService.getTopics().then((res) => {
+            topsData = res.data;
+            setCacheTopics(topsData);
+          }));
+        }
+
+        if (promises.length > 0) {
+          await Promise.all(promises);
+        }
+
+        const subj = subsData.find((s) => s.key === subjectKey);
         if (subj) setSubjectTitle(subj.title);
 
-        const filteredTopics = topsRes.data.filter(t => t.subjectKey === subjectKey);
-        setTopics(filteredTopics);
+        const filteredTopics = topsData.filter(
+          (t) => t.subjectKey === subjectKey,
+        );
+        setLocalTopics(filteredTopics);
       } catch (err) {
         console.error(err);
       } finally {
@@ -30,7 +54,7 @@ const SubjectPage = () => {
       }
     };
     fetchTopics();
-  }, [subjectKey]);
+  }, [subjectKey, cachedSubjects, cachedTopics, setCacheSubjects, setCacheTopics]);
 
   if (loading) {
     return (
@@ -42,23 +66,28 @@ const SubjectPage = () => {
 
   return (
     <div className="px-2 py-8 md:p-8 max-w-5xl mx-auto w-full flex flex-col gap-6 animate-fadeIn">
-      <div className="flex flex-col gap-2">
-        <div className="text-sm breadcrumbs text-base-content/60">
+      <div className="flex gap-2 items-center ml-2">
+        {/* <div className="text-sm breadcrumbs text-base-content/60">
           <ul>
             <li><Link to="/">LMS</Link></li>
             <li><Link to={`/${moduleKey}`}>{moduleKey}</Link></li>
             <li>{subjectKey}</li>
           </ul>
-        </div>
-        <h2 className="text-3xl font-extrabold capitalize">{subjectTitle || subjectKey}</h2>
-        <p className="text-base-content/70">Select a topic to start learning.</p>
+        </div> */}
+        <Link to={`/${moduleKey}`}>
+          <ArrowLeft className="font-bold"/>
+        </Link>
+        <h2 className="text-3xl font-extrabold capitalize">
+          {subjectTitle || subjectKey}
+        </h2>
+        {/* <p className="text-base-content/70">Select a topic to start learning.</p> */}
       </div>
 
       <div className="flex flex-col gap-4 mt-4">
         {topics.map((topic, index) => (
           <Link
             key={topic._id || topic.topicId}
-            to={`/${moduleKey}/${subjectKey}/${topic.topicId.replace(/^\//, '')}`}
+            to={`/${moduleKey}/${subjectKey}/${topic.topicId.replace(/^\//, "")}`}
             className="group flex items-center justify-between p-5 border border-base-300 bg-base-100 hover:bg-base-200 rounded-2xl transition-all duration-300"
           >
             <div className="flex items-center gap-4">

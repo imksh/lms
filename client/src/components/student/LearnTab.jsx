@@ -19,6 +19,7 @@ const LearnTab = ({
   // State to hold the current draft input for each section index task
   const [taskDrafts, setTaskDrafts] = useState({});
   const [expandedSubmissions, setExpandedSubmissions] = useState({});
+  const [submittingIdx, setSubmittingIdx] = useState(null);
 
   // Reset drafts when activeTopic changes
   useEffect(() => {
@@ -38,7 +39,9 @@ const LearnTab = ({
     return (
       <div className="flex flex-col gap-6 animate-fadeIn pb-10">
         <div className="card bg-base-200 border border-base-300 rounded-3xl p-6 shadow-sm flex flex-col gap-3 text-center">
-          <p className="text-base-content/60 text-sm">No content available for this topic yet.</p>
+          <p className="text-base-content/60 text-sm">
+            No content available for this topic yet.
+          </p>
         </div>
       </div>
     );
@@ -72,7 +75,7 @@ const LearnTab = ({
 
             {/* Section Task Form (if task exists) */}
             {section.task && (
-              <div className="md:card md:bg-linear-to-br md:from-primary/5 md:via-base-200 md:to-accent/5 border-b md:border border-primary/20 md:rounded-2xl px-2 py-6 md:p-6 md:shadow-md flex flex-col gap-4 ml-0 md:ml-6">
+              <div className="md:card md:bg-linear-to-br md:from-primary/5 md:via-base-200 md:to-accent/5 border-b md:border border-primary/20 md:rounded-2xl py-6 md:p-6 md:shadow-md flex flex-col gap-4 ml-0 md:ml-6">
                 <div className="flex justify-between items-center border-b border-base-300/65 pb-3 gap-2">
                   <div className="flex flex-col gap-0.5 truncate">
                     <span className="text-[10px] font-black tracking-wider text-primary uppercase">
@@ -109,14 +112,12 @@ const LearnTab = ({
                   </div>
                 </div>
 
-                
-                  <div className="text-xs text-base-content/75 leading-relaxed bg-base-100 p-3.5 border border-base-300 rounded-2xl">
-                    <span className="font-bold block text-base-content mb-1 text-[11px] uppercase tracking-wider text-base-content/60">
-                      Task:
-                    </span>
-                    {section.task.text}
-                  </div>
-               
+                <div className="text-xs text-base-content/75 leading-relaxed bg-base-100 p-3.5 border border-base-300 rounded-2xl">
+                  <span className="font-bold block  mb-1 text-[11px] uppercase tracking-wider text-base-content/60">
+                    Task:
+                  </span>
+                  {section.task.text}
+                </div>
 
                 {/* Submit Form inputs based on type */}
                 <div className="flex flex-col gap-2">
@@ -182,20 +183,28 @@ const LearnTab = ({
                   </div>
                   <button
                     type="button"
+                    disabled={submittingIdx === idx}
                     onClick={async () => {
                       if (!draft.trim())
                         return toast.error(
                           "Please fill in your response before submitting.",
                         );
+                      setSubmittingIdx(idx);
                       await handleTaskSubmit(
                         idx,
                         section.task.submissionType,
                         draft,
+                        activeTopic.topicId
                       );
+                      setSubmittingIdx(null);
                     }}
-                    className="btn btn-sm btn-primary rounded-xl px-5 font-bold flex gap-1.5 items-center shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    className="btn btn-sm btn-primary rounded-xl px-5 font-bold flex gap-1.5 items-center shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70"
                   >
-                    <Send size={14} />{" "}
+                    {submittingIdx === idx ? (
+                      <span className="loading loading-spinner loading-xs"></span>
+                    ) : (
+                      <Send size={14} />
+                    )}
                     {submission ? "Update Submission" : "Submit Answer"}
                   </button>
                 </div>
