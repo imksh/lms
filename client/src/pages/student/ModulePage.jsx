@@ -36,7 +36,7 @@ const ModulePage = () => {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto w-full flex flex-col gap-6 animate-fadeIn">
+    <div className="px-2 py-8 md:p-8 max-w-5xl mx-auto w-full flex flex-col gap-6 animate-fadeIn">
       <div className="flex flex-col gap-2">
         <h2 className="text-3xl font-extrabold capitalize">Module: {moduleKey}</h2>
         <p className="text-base-content/70">Select a subject to continue learning.</p>

@@ -305,12 +305,15 @@ const LMSLayout = () => {
   };
   const topicsList = activeCourse.topics;
 
-  // Auto-redirect to first topic if accessing subject root
+  // Auto-redirect to first topic if accessing subject root (Desktop only)
   useEffect(() => {
     if (subjectKey && !topicWildcard && dynamicCoursesConfig[subjectKey]) {
-      const firstTopic = dynamicCoursesConfig[subjectKey]?.topics[0];
-      if (firstTopic) {
-        navigate(firstTopic.path, { replace: true });
+      // Only auto-redirect on larger screens so mobile users see the topics list first
+      if (window.innerWidth >= 1024) {
+        const firstTopic = dynamicCoursesConfig[subjectKey]?.topics[0];
+        if (firstTopic) {
+          navigate(firstTopic.path, { replace: true });
+        }
       }
     }
   }, [subjectKey, topicWildcard, dynamicCoursesConfig, navigate]);
@@ -514,6 +517,7 @@ const LMSLayout = () => {
               </div>
 
               {/* LMS Tabs */}
+              <div className="w-full flex justify-center items-center sticky md:static top-0 z-50 bg-base-100 py-2 md:py-0">
               <div className="tabs  mx-auto tabs-box bg-base-200 p-1 rounded-2xl w-fit flex gap-1 border border-base-300">
                 <button
                   onClick={() => setActiveTab("learn")}
@@ -558,7 +562,7 @@ const LMSLayout = () => {
                   <span className="hidden md:flex">Notebook</span>{" "}
                   <span className="flex md:hidden">Note</span>
                 </button>
-              </div>
+              </div></div>
 
               {/* Tab Contents */}
               <div className="flex-1 mt-2">

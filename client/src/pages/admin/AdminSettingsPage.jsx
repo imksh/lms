@@ -64,7 +64,7 @@ export const AdminSettingsPage = () => {
         </button>
       }
     >
-      <div className="p-6 max-w-3xl mx-auto">
+      <div className="px-2 py-6 md:p-6 max-w-3xl mx-auto">
         <form
           id="setting-form"
           onSubmit={handleSave}

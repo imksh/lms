@@ -304,7 +304,7 @@ const Landing = () => {
   }
 
   return (
-    <div className="min-h-screen bg-base-100 text-base-content font-sans overflow-x-hidden relative selection:bg-primary selection:text-primary-content overflow-y-auto h-dvh">
+    <div className="min-h-dvh bg-base-100 text-base-content font-sans overflow-x-hidden relative selection:bg-primary selection:text-primary-content overflow-y-auto h-dvh">
       {/* Dynamic Background Effects */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[50%] bg-primary/20 rounded-full blur-[100px] animate-pulse-glow" />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { RichTextEditor } from "@imksh/editor";
 import {
   ArrowUp,
@@ -7,6 +7,8 @@ import {
   FilePlus,
   CheckCircle,
   Plus,
+  Maximize,
+  Minimize,
 } from "lucide-react";
 import { Field, inputCls, textareaCls } from "../../common/SharedFields";
 import ToggleSwitch from "../../common/ToggleSwitch";
@@ -21,6 +23,7 @@ const TopicEditor = ({
   topicId,
 }) => {
   const tf = topicForm;
+  const [toggleDetails, setToggleDetails] = useState(false);
 
   // Topic sections helpers
   const mutSec = (fn) =>
@@ -32,7 +35,7 @@ const TopicEditor = ({
   const addSec = () =>
     mutSec((s) =>
       s.push({
-        title: `Section ${s.length + 1}`,
+        title: ``,
         content: "<p>Content here...</p>",
         task: null,
       }),
@@ -121,9 +124,9 @@ const TopicEditor = ({
   return (
     <div className="flex flex-col gap-6 md:overflow-hidden md:h-[calc(100vh-110px)]">
       {/* Form configuration */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:overflow-hidden h-full">
-        <div className="lg:col-span-2 flex flex-col gap-6 md:overflow-y-auto h-full pb-10 pr-2">
-          <div className="sticky top-0 z-20 w-full bg-base-100 m-1 flex justify-center items-center md:block">
+      <div className={`grid grid-cols-1 ${toggleDetails ? "lg:grid-cols-1" : "lg:grid-cols-3"} gap-6 md:overflow-hidden h-full`}>
+        <div className={`${toggleDetails ? "lg:col-span-1" : "lg:col-span-2"} flex flex-col gap-6 md:overflow-y-auto h-full pb-10 pr-2`}>
+          <div className="sticky top-0 z-20 w-full bg-base-100 m-1 flex justify-between items-center">
             <div className="tabs tabs-box bg-base-200 p-1 rounded-2xl w-fit flex gap-1 ">
               {["sections", "quiz", "playground"].map((t) => (
                 <button
@@ -135,6 +138,15 @@ const TopicEditor = ({
                 </button>
               ))}
             </div>
+            
+            <button
+              onClick={() => setToggleDetails(!toggleDetails)}
+              className="btn btn-sm btn-primary btn-soft border border-base-300 rounded-xl flex items-center gap-2"
+              title={toggleDetails ? "Show Details" : "Full Screen Form"}
+            >
+              {toggleDetails ? <Minimize size={16} /> : <Maximize size={16} />}
+              <span className="hidden md:inline font-bold">{toggleDetails ? "Show Details" : "Full Screen"}</span>
+            </button>
           </div>
 
           {/* Sections */}
@@ -143,7 +155,7 @@ const TopicEditor = ({
               {tf.sections?.map((sec, i) => (
                 <div
                   key={i}
-                  className="card bg-base-200/50 border border-base-300/60 rounded-3xl p-5 flex flex-col gap-4"
+                  className="md:card border-b md:bg-base-200/50 md:border border-base-300/60 md:rounded-2xl px-2 py-4 border-0 md:p-5 flex flex-col gap-4"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -151,7 +163,7 @@ const TopicEditor = ({
                         #{i + 1}
                       </span>
                       <input
-                        className="input input-xs bg-transparent border-none font-bold text-sm focus:outline-none w-48"
+                        className="input input-xs bg-transparent border-none font-bold text-sm focus:outline-none md:w-48 shrink"
                         value={sec.title}
                         onChange={(e) => setSec(i, "title", e.target.value)}
                         placeholder="Section title..."
@@ -187,6 +199,7 @@ const TopicEditor = ({
                     <RichTextEditor
                       value={sec.content}
                       onChange={(val) => setSec(i, "content", val)}
+                      height={300}
                     />
                   </div>
                   <div className="flex items-center gap-2">
@@ -439,8 +452,9 @@ const TopicEditor = ({
         </div>
 
         {/* Details Sidebar */}
-        <div className="flex flex-col gap-4 md:overflow-y-auto h-full pb-10 pr-2">
-          <div className="card bg-base-200/50 border border-base-300/60 rounded-3xl p-5 flex flex-col gap-4">
+        {!toggleDetails && (
+          <div className="flex flex-col gap-4 md:overflow-y-auto h-full pb-10 pr-2">
+            <div className="card bg-base-200/50 border border-base-300/60 rounded-3xl p-2 py-4 md:p-5 flex flex-col gap-4">
             <h4 className="text-xs font-black uppercase tracking-wider text-base-content/40">
               Topic Settings
             </h4>
@@ -523,9 +537,10 @@ const TopicEditor = ({
             </Field>
           </div>
         </div>
-      </div>
+      )}
     </div>
-  );
+  </div>
+);
 };
 
 export default TopicEditor;

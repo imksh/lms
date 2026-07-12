@@ -23,7 +23,7 @@ import useWindowSize from "../../hooks/useWindowSize";
 
 const AdminLayout = ({ children, actions, breadcrumbs, title }) => {
   const location = useLocation();
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const [collapsed, setCollapsed] = useState(false);
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "dark",
@@ -165,7 +165,9 @@ const AdminLayout = ({ children, actions, breadcrumbs, title }) => {
       <div
         className={`flex items-center gap-3 px-4 py-5 border-b border-base-300/50 shrink-0 ${collapsed ? "justify-center" : ""}`}
       >
-        <div className={`w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 ${collapsed?"mr-auto":""}`}>
+        <div
+          className={`w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 ${collapsed ? "mr-auto" : ""}`}
+        >
           <GraduationCap size={16} className="text-primary" />
         </div>
         {!collapsed && (
@@ -212,7 +214,7 @@ const AdminLayout = ({ children, actions, breadcrumbs, title }) => {
           <Moon size={18} className="shrink-0" />
         )}
       </button>
-      <div className="p-3 border-t border-base-300/50 shrink-0 flex flex-col gap-2">
+      <div className="hidden p-3 border-t border-base-300/50 shrink-0 md:flex flex-col gap-2">
         <button
           onClick={() => setCollapsed((p) => !p)}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 text-base-content/60 hover:text-base-content hover:bg-base-300/60 ${collapsed ? "justify-center" : ""}`}
@@ -224,6 +226,15 @@ const AdminLayout = ({ children, actions, breadcrumbs, title }) => {
             <ChevronLeft size={18} className="shrink-0" />
           )}
           {!collapsed && <span className="truncate">Collapse</span>}
+        </button>
+      </div>
+      <div className=" p-3 border-t border-base-300/50 shrink-0 flex flex-col gap-2">
+        <button
+          onClick={logout}
+          className={`w-full btn btn-error btn-sm`}
+          title="Logout"
+        >
+          Logout
         </button>
       </div>
     </div>

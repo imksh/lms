@@ -6,7 +6,7 @@ const TopicFallbackPage = () => {
   const { moduleKey, subjectKey } = useParams();
 
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center animate-fadeIn">
+    <div className="flex flex-col items-center justify-center h-full gap-4 px-2 py-8 md:p-8 text-center animate-fadeIn">
       <div className="p-4 bg-error/10 text-error rounded-full mb-4">
         <AlertCircle size={48} />
       </div>

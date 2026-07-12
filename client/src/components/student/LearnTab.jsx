@@ -72,7 +72,7 @@ const LearnTab = ({
 
             {/* Section Task Form (if task exists) */}
             {section.task && (
-              <div className="card bg-gradient-to-br from-primary/5 via-base-200 to-accent/5 border border-primary/20 rounded-3xl p-6 shadow-md flex flex-col gap-4 ml-0 md:ml-6">
+              <div className="md:card md:bg-linear-to-br md:from-primary/5 md:via-base-200 md:to-accent/5 border-b md:border border-primary/20 md:rounded-2xl px-2 py-6 md:p-6 md:shadow-md flex flex-col gap-4 ml-0 md:ml-6">
                 <div className="flex justify-between items-center border-b border-base-300/65 pb-3 gap-2">
                   <div className="flex flex-col gap-0.5 truncate">
                     <span className="text-[10px] font-black tracking-wider text-primary uppercase">
@@ -112,7 +112,7 @@ const LearnTab = ({
                 
                   <div className="text-xs text-base-content/75 leading-relaxed bg-base-100 p-3.5 border border-base-300 rounded-2xl">
                     <span className="font-bold block text-base-content mb-1 text-[11px] uppercase tracking-wider text-base-content/60">
-                      Instructions:
+                      Task:
                     </span>
                     {section.task.text}
                   </div>

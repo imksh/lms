@@ -41,7 +41,7 @@ const SubjectPage = () => {
   }
 
   return (
-    <div className="p-8 max-w-5xl mx-auto w-full flex flex-col gap-6 animate-fadeIn">
+    <div className="px-2 py-8 md:p-8 max-w-5xl mx-auto w-full flex flex-col gap-6 animate-fadeIn">
       <div className="flex flex-col gap-2">
         <div className="text-sm breadcrumbs text-base-content/60">
           <ul>

@@ -39,12 +39,7 @@ const PracticeTab = ({ activeTopic, exerciseAnswers, currentPath, handleAnswerCh
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn">
-      <div className="p-4 bg-success/10 text-success border border-success/20 rounded-2xl flex gap-3 items-center">
-        <span className="text-2xl">🧠</span>
-        <div className="text-sm">
-          <span className="font-bold">Topic Quiz:</span> Select the correct options to test your understanding. Your responses are auto-saved locally.
-        </div>
-      </div>
+      
 
       {quizzes.map((q, idx) => (
         <div

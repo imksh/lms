@@ -95,7 +95,7 @@ const AdminUsers = () => {
         />
       ) : (
         /* ── User List ── */
-        <div className="p-4 md:p-6 flex flex-col gap-6">
+        <div className="px-2 py-6 md:p-6 flex flex-col gap-6">
           {/* Controls Bar */}
           <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
             {/* Tabs */}

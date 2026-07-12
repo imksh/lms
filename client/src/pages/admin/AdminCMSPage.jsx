@@ -729,7 +729,7 @@ export const AdminCMSPage = () => {
       breadcrumbs={<Breadcrumbs items={getBreadcrumbs()} />}
       actions={getActions()}
     >
-      <div className="p-6 max-w-7xl mx-auto flex flex-col min-h-full relative">
+      <div className="px-2 py-6 md:p-6 max-w-7xl mx-auto flex flex-col min-h-full relative">
         {/* View Routing */}
         {loading && <Loading />}
         {!moduleId && (

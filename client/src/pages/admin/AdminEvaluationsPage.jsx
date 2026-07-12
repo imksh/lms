@@ -128,7 +128,7 @@ export const AdminEvaluationsPage = () => {
         !selected ? <div className="hidden md:flex">{tabsEl}</div> : null
       }
     >
-      <div className="p-6 relative h-full">
+      <div className="px-2 py-6 md:p-6 relative h-full">
         {loading && <Loading />}
         {!selected ? (
           <>
