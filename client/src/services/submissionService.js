@@ -9,9 +9,9 @@ export const submissionService = {
   submit: (topicId, sectionIndex, submissionType, submittedContent) =>
     api.post("/submissions", { topicId, sectionIndex, submissionType, submittedContent }),
 
-  // Admin: get all submissions
-  getAllSubmissions: () =>
-    api.get("/submissions"),
+  // Admin: get all submissions (optionally filter by userId)
+  getAllSubmissions: (status, page = 1, limit = 20, userId = null) =>
+    api.get("/submissions", { params: { status, page, limit, userId } }),
 
   // Admin: evaluate a submission
   evaluate: (id, status, grade, feedback) =>

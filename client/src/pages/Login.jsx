@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, GraduationCap } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 
 const Login = () => {
@@ -27,12 +27,7 @@ const Login = () => {
 
   return (
     <div className="min-h-dvh w-screen bg-base-100 text-base-content flex items-center justify-center p-4 font-sans">
-      {/* Gradient background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
-      </div>
-
+    
       <div className="relative w-full max-w-md">
         {/* Back link */}
         <Link
@@ -46,8 +41,8 @@ const Login = () => {
         <div className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-3xl p-8 shadow-2xl">
           {/* Logo & title */}
           <div className="flex flex-col items-center gap-2 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-primary/15 border border-primary/20 flex items-center justify-center text-2xl shadow-inner">
-              📚
+            <div className="w-12 h-12 rounded-2xl bg-primary/15 border border-primary/20 flex items-center justify-center text-2xl shadow-inner text-primary font-bold">
+              <GraduationCap size={24} />
             </div>
             <h1 className="text-2xl font-black tracking-tight">
               {mode === "login" ? "Welcome back" : "Create account"}
@@ -65,7 +60,9 @@ const Login = () => {
               type="button"
               onClick={() => setMode("login")}
               className={`tab flex-1 rounded-xl text-sm font-bold transition-all ${
-                mode === "login" ? "tab-active bg-primary text-primary-content!" : ""
+                mode === "login"
+                  ? "tab-active bg-primary text-primary-content!"
+                  : ""
               }`}
             >
               Sign In
@@ -74,7 +71,9 @@ const Login = () => {
               type="button"
               onClick={() => setMode("signup")}
               className={`tab flex-1 rounded-xl text-sm font-bold transition-all ${
-                mode === "signup" ? "tab-active bg-primary text-primary-content!" : ""
+                mode === "signup"
+                  ? "tab-active bg-primary text-primary-content!"
+                  : ""
               }`}
             >
               Sign Up

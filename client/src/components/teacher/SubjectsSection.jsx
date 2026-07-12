@@ -1,4 +1,5 @@
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
+import toast from "react-hot-toast";
 import { Reorder } from "motion/react";
 import {
   ChevronRight,
@@ -11,9 +12,13 @@ import {
   X,
   GripVertical,
   ArrowRightLeft,
+  Plus,
+  Code,
+  PenTool,
 } from "lucide-react";
 import { cmsService } from "../../services/cmsService";
 import { Field, inputCls, textareaCls } from "../common/SharedFields";
+import { useConfirm } from "../../contexts/ConfirmContext";
 
 const EMPTY_FORM = {
   key: "",
@@ -46,6 +51,7 @@ const SubjectsSection = forwardRef(
     const [isReordering, setIsReordering] = useState(false);
     const [localSubjects, setLocalSubjects] = useState(filteredSubjects);
     const [savingReorder, setSavingReorder] = useState(false);
+    const confirm = useConfirm();
 
     useEffect(() => {
       setLocalSubjects(filteredSubjects);
@@ -93,14 +99,14 @@ const SubjectsSection = forwardRef(
         await fetchSubjects();
         closeForm();
       } catch (e) {
-        alert(e.response?.data?.message || e.message);
+        toast.error(e.response?.data?.message || e.message);
       } finally {
         setSaving(false);
       }
     };
 
     const del = async (key) => {
-      if (!confirm("Delete subject and all its topics?")) return;
+      if (!(await confirm("Delete subject and all its topics?"))) return;
       await cmsService.deleteSubject(key);
       fetchSubjects();
     };
@@ -113,7 +119,7 @@ const SubjectsSection = forwardRef(
         await cmsService.updateSubject(subj.key, { isPublic: !subj.isPublic });
         await fetchSubjects();
       } catch (err) {
-        alert(err.response?.data?.message || err.message);
+        toast.error(err.response?.data?.message || err.message);
       } finally {
         setTogglingKey(null);
       }
@@ -127,7 +133,7 @@ const SubjectsSection = forwardRef(
         await fetchSubjects();
         setIsReordering(false);
       } catch (err) {
-        alert(err.response?.data?.message || err.message);
+        toast.error(err.response?.data?.message || err.message);
       } finally {
         setSavingReorder(false);
       }

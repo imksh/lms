@@ -17,14 +17,65 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-const Sandbox = ({ defaultCode, theme }) => {
+const Sandbox = ({ defaultCode, language, theme, setData }) => {
   const [code, setCode] = useState(defaultCode || "");
   const [executedCode, setExecutedCode] = useState(defaultCode || "");
   const [error, setError] = useState(null);
   const [consoleLogs, setConsoleLogs] = useState([]);
   const [isScriptMode, setIsScriptMode] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.classList.add("sandbox-fullscreen-active");
+    } else {
+      document.body.classList.remove("sandbox-fullscreen-active");
+    }
+    return () => document.body.classList.remove("sandbox-fullscreen-active");
+  }, [isFullscreen]);
+
   const [showPreview, setShowPreview] = useState(true);
+  const [panelSize, setPanelSize] = useState(50);
+  const [isResizing, setIsResizing] = useState(false);
+  const containerRef = useRef(null);
+
+  const startResizing = useCallback((eStart) => {
+    eStart.preventDefault();
+    setIsResizing(true);
+    const isVertical = window.innerWidth < 1024;
+
+    const handleMove = (eMove) => {
+      if (!containerRef.current) return;
+      const isTouch = eMove.type.startsWith('touch');
+      const clientX = isTouch ? eMove.touches[0].clientX : eMove.clientX;
+      const clientY = isTouch ? eMove.touches[0].clientY : eMove.clientY;
+
+      const { left, top, width, height } = containerRef.current.getBoundingClientRect();
+      let newSize;
+      if (isVertical) {
+        newSize = ((clientY - top) / height) * 100;
+      } else {
+        newSize = ((clientX - left) / width) * 100;
+      }
+
+      if (newSize >= 15 && newSize <= 85) {
+        setPanelSize(newSize);
+      }
+    };
+
+    const handleUp = () => {
+      setIsResizing(false);
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleUp);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleUp);
+    };
+
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleUp);
+    window.addEventListener("touchmove", handleMove, { passive: false });
+    window.addEventListener("touchend", handleUp);
+  }, []);
 
   // States to pass transpiled code to the iframe
   const [sandboxCode, setSandboxCode] = useState("");
@@ -89,7 +140,9 @@ const Sandbox = ({ defaultCode, theme }) => {
       }).code;
 
       // Check if it's a React component vs a plain JS script
+      const isBrowserEnv = language === "browser";
       const hasJSX =
+        isBrowserEnv ||
         (cleanCode.includes("<") && cleanCode.includes(">")) ||
         compiled.includes("React.createElement");
 
@@ -263,187 +316,220 @@ const Sandbox = ({ defaultCode, theme }) => {
   }, [sandboxCode, sandboxComponentName, theme]);
 
   return (
-    <div
-      className={`transition-all duration-300 gap-2 md:gap-4 p-2 overflow-hidden ${
-        isFullscreen
-          ? "fixed inset-0 z-[100] w-screen h-dvh p-2 md:p-4 bg-base-300 flex flex-col lg:flex-row"
-          : "flex flex-col lg:flex-row w-full h-[680px] md:h-[500px] border border-base-300 rounded-3xl bg-base-200 shadow-lg"
-      }`}
-    >
-      {/* Left side: Editor */}
+    <>
+      <style>{`
+      @media (max-width: 1023px) {
+        .resize-left { height: calc(${panelSize}% - 4px) !important; flex: none !important; }
+        .resize-right { height: calc(${100 - panelSize}% - 4px) !important; flex: none !important; }
+      }
+      @media (min-width: 1024px) {
+        .resize-left { width: calc(${panelSize}% - 8px) !important; flex: none !important; }
+        .resize-right { width: calc(${100 - panelSize}% - 8px) !important; flex: none !important; }
+      }
+    `}</style>
       <div
-        className={`flex flex-col h-full bg-base-100 rounded-2xl overflow-hidden transition-all duration-300 ${
-          showPreview ? "flex-1 border-r border-base-300" : "w-full flex-grow"
+        ref={containerRef}
+        className={`transition-all duration-300  p-2 overflow-hidden ${
+          isFullscreen
+            ? "fixed inset-0 z-[9999] w-screen h-dvh p-2 md:p-4 bg-base-300 flex flex-col lg:flex-row"
+            : "flex flex-col lg:flex-row w-full h-[680px] md:h-[500px] border border-base-300 rounded-3xl bg-base-200 shadow-lg"
         }`}
       >
-        <div className="flex items-center justify-between px-4 py-2.5 bg-base-300/50 border-b border-base-300 shrink-0">
-          <span className="text-xs font-bold uppercase tracking-wider text-base-content/70">
-            Code Editor
-          </span>
-          <div className="flex gap-2 items-center">
-            {/* Show/Hide Preview Button on Large Screen */}
-            <button
-              onClick={() => setShowPreview((prev) => !prev)}
-              className="hidden lg:flex text-xs btn btn-xs btn-outline border-none rounded-lg px-1.5"
-              title={showPreview ? "Hide Preview" : "Show Preview"}
-            >
-              {showPreview ? (
-                <ChevronRight size={16} />
-              ) : (
-                <ChevronLeft size={16} />
-              )}
-            </button>
-
-            <button
-              onClick={() => setIsFullscreen((prev) => !prev)}
-              className="text-xs btn btn-xs btn-outline border-none rounded-lg px-1.5"
-              title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-            >
-              {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-            </button>
-            <button
-              onClick={() => {
-                setCode(defaultCode);
-                setExecutedCode(defaultCode);
-              }}
-              className="text-xs btn btn-xs btn-outline border-none rounded-lg px-1.5"
-              title="Reset Code"
-            >
-              <RotateCcw size={16} />
-            </button>
-            <button
-              onClick={handleFormat}
-              className="text-[10px] btn btn-xs btn-outline rounded-lg px-2 font-bold hover:scale-[1.01] active:scale-[0.99] transition-transform"
-            >
-              Format
-            </button>
-            <button
-              onClick={handleRun}
-              className="btn btn-xs bg-green-500 btn-success rounded-lg text-[10px] font-bold flex items-center gap-1 text-white hover:scale-[1.01] active:scale-[0.99] px-2 transition-transform"
-            >
-              ▶ Run Code
-            </button>
-          </div>
-        </div>
-        <div className="flex-1 w-full overflow-hidden">
-          <Editor
-            height="100%"
-            language="javascript"
-            theme={theme === "dark" ? "vs-dark" : "light"}
-            value={code}
-            onChange={(val) => setCode(val || "")}
-            onMount={handleEditorDidMount}
-            options={{
-              minimap: { enabled: false },
-              fontSize: 13,
-              fontFamily: "Fira Code, Monaco, Courier New, monospace",
-              wordWrap: "on",
-              automaticLayout: true,
-              scrollBeyondLastLine: false,
-              tabSize: 2,
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Right side: Preview */}
-      <div
-        className={`flex flex-col bg-base-100 rounded-2xl overflow-hidden transition-all duration-300 ${
-          showPreview
-            ? "flex-1 h-[250px] lg:h-full border border-base-300"
-            : "lg:hidden h-[44px] shrink-0 border border-base-300"
-        }`}
-      >
+        {/* Left side: Editor */}
         <div
-          onClick={() => {
-            // Clicking the header bar on mobile acts as a toggle
-            if (window.innerWidth < 1024) {
-              setShowPreview((prev) => !prev);
-            }
-          }}
-          className="flex items-center px-4 py-2.5 bg-base-300/50 border-b border-base-300 shrink-0 select-none cursor-pointer lg:cursor-default"
-        >
-          <span className="text-xs font-bold uppercase tracking-wider text-base-content/70">
-            {isScriptMode ? "💻 Terminal / Console" : "🖥️ Browser View"}
-          </span>
-          {showPreview && !isScriptMode && (
-            <div className="hidden md:flex bg-base-100 border border-base-300 px-3 py-1 rounded-xl text-[10px] font-mono text-base-content/65 select-none truncate ml-auto mr-2">
-              http://localhost:5173/demo
-            </div>
-          )}
-
-          {/* Expand/Collapse Toggle Button for Small Screen */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowPreview((prev) => !prev);
-            }}
-            className="lg:hidden ml-auto text-xs btn btn-xs btn-outline border-none rounded-lg px-1.5"
-            title={showPreview ? "Collapse" : "Expand"}
-          >
-            {showPreview ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-          </button>
-        </div>
-        <div
-          className={`flex-1 overflow-y-auto relative flex flex-col transition-colors duration-300 ${
-            !showPreview ? "hidden lg:flex" : ""
-          } ${
-            isScriptMode || error
-              ? "bg-slate-950 p-6 text-slate-100"
-              : "bg-base-100 text-base-content"
+          className={`flex flex-col h-full bg-base-100 rounded-2xl overflow-hidden ${!isResizing ? "transition-all duration-300" : ""} ${
+            showPreview
+              ? "flex-1 border-r border-base-300 resize-left"
+              : "w-full flex-grow"
           }`}
         >
-          {error ? (
-            <div className="absolute inset-0 p-4 bg-red-950/80 text-red-400 font-mono text-xs overflow-y-auto whitespace-pre-wrap">
-              <h4 className="font-bold mb-1">
-                🚨 Compilation / Runtime Error:
-              </h4>
-              {error}
-            </div>
-          ) : isScriptMode ? (
-            <div className="font-mono text-xs space-y-2 w-full">
-              {consoleLogs.map((log, index) => {
-                let colorClass = "text-slate-300";
-                let prefix = "";
-                if (log.type === "error") {
-                  colorClass = "text-red-400";
-                  prefix = "🔴 ";
-                } else if (log.type === "warn") {
-                  colorClass = "text-yellow-400";
-                  prefix = "🟡 ";
-                } else if (log.type === "info") {
-                  colorClass = "text-blue-400 italic";
-                  prefix = "ℹ️ ";
-                } else {
-                  prefix = "❯ ";
-                }
-                return (
-                  <div
-                    key={index}
-                    className={`${colorClass} whitespace-pre-wrap break-all border-b border-slate-900 pb-1.5`}
-                  >
-                    <span className="select-none text-slate-500 mr-1">
-                      {prefix}
-                    </span>
-                    {log.text}
-                  </div>
-                );
-              })}
-            </div>
-          ) : sandboxCode && sandboxComponentName ? (
-            <iframe
-              srcDoc={iframeSrcDoc}
-              title="Live Preview"
-              className="w-full h-full border-none bg-transparent"
-            />
-          ) : (
-            <span className="text-xs text-base-content/40 m-auto">
-              No output to display.
+          <div className="flex items-center justify-between px-4 py-2.5 bg-base-300/50 border-b border-base-300 shrink-0">
+            <span className="text-xs font-bold uppercase tracking-wider text-base-content/70">
+              Code Editor
             </span>
-          )}
+            <div className="flex gap-2 items-center">
+              {/* Show/Hide Preview Button on Large Screen */}
+              <button
+                onClick={() => setShowPreview((prev) => !prev)}
+                className="hidden lg:flex text-xs btn btn-xs btn-outline border-none rounded-lg px-1.5"
+                title={showPreview ? "Hide Preview" : "Show Preview"}
+              >
+                {showPreview ? (
+                  <ChevronRight size={16} />
+                ) : (
+                  <ChevronLeft size={16} />
+                )}
+              </button>
+
+              <button
+                onClick={() => setIsFullscreen((prev) => !prev)}
+                className="text-xs btn btn-xs btn-outline border-none rounded-lg px-1.5"
+                title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+              >
+                {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+              </button>
+              <button
+                onClick={() => {
+                  setCode(defaultCode);
+                  setExecutedCode(defaultCode);
+                }}
+                className="text-xs btn btn-xs btn-outline border-none rounded-lg px-1.5"
+                title="Reset Code"
+              >
+                <RotateCcw size={16} />
+              </button>
+              <button
+                onClick={handleFormat}
+                className="text-[10px] btn btn-xs btn-outline rounded-lg px-2 font-bold hover:scale-[1.01] active:scale-[0.99] transition-transform"
+              >
+                Format
+              </button>
+              <button
+                onClick={handleRun}
+                className="btn btn-xs bg-green-500 btn-success rounded-lg text-[10px] font-bold flex items-center gap-1 text-white hover:scale-[1.01] active:scale-[0.99] px-2 transition-transform"
+              >
+                ▶ Run Code
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 w-full overflow-hidden">
+            <Editor
+              height="100%"
+              language={language === "browser" ? "javascript" : (language || "javascript")}
+              theme={theme === "dark" ? "vs-dark" : "light"}
+              value={code}
+              onChange={(val) => {
+                const newCode = val || "";
+                setCode(newCode);
+                if (setData) setData({ code: newCode });
+              }}
+              onMount={handleEditorDidMount}
+              options={{
+                minimap: { enabled: false },
+                fontSize: 13,
+                fontFamily: "Fira Code, Monaco, Courier New, monospace",
+                wordWrap: "on",
+                automaticLayout: true,
+                scrollBeyondLastLine: false,
+                tabSize: 2,
+              }}
+            />
+          </div>
+        </div>
+
+        {showPreview && (
+          <div
+            className="flex w-full lg:w-2 h-2 lg:h-auto cursor-row-resize lg:cursor-col-resize hover:bg-primary/50 active:bg-primary/80 transition-colors items-center justify-center rounded-full z-10 shrink-0 select-none"
+            onMouseDown={startResizing}
+            onTouchStart={startResizing}
+          >
+            <div className="h-1 lg:h-8 w-8 lg:w-1 bg-base-content/20 rounded-full" />
+          </div>
+        )}
+
+        {/* Right side: Preview */}
+        <div
+          className={`flex flex-col bg-base-100 rounded-2xl overflow-hidden ${!isResizing ? "transition-all duration-300" : ""} ${
+            showPreview
+              ? "flex-1 border border-base-300 resize-right"
+              : "lg:hidden h-[44px] shrink-0 border border-base-300"
+          }`}
+        >
+          <div
+            onClick={() => {
+              // Clicking the header bar on mobile acts as a toggle
+              if (window.innerWidth < 1024) {
+                setShowPreview((prev) => !prev);
+              }
+            }}
+            className="flex items-center px-4 py-2.5 bg-base-300/50 border-b border-base-300 shrink-0 select-none cursor-pointer lg:cursor-default"
+          >
+            <span className="text-xs font-bold uppercase tracking-wider text-base-content/70">
+              {isScriptMode ? "💻 Terminal / Console" : "🖥️ Browser View"}
+            </span>
+            {showPreview && !isScriptMode && (
+              <div className="hidden md:flex bg-base-100 border border-base-300 px-3 py-1 rounded-xl text-[10px] font-mono text-base-content/65 select-none truncate ml-auto mr-2">
+                http://localhost:5173/demo
+              </div>
+            )}
+
+            {/* Expand/Collapse Toggle Button for Small Screen */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPreview((prev) => !prev);
+              }}
+              className="lg:hidden ml-auto text-xs btn btn-xs btn-outline border-none rounded-lg px-1.5"
+              title={showPreview ? "Collapse" : "Expand"}
+            >
+              {showPreview ? (
+                <ChevronDown size={16} />
+              ) : (
+                <ChevronUp size={16} />
+              )}
+            </button>
+          </div>
+          <div
+            className={`flex-1 overflow-y-auto relative flex flex-col transition-colors duration-300 ${
+              !showPreview ? "hidden lg:flex" : ""
+            } ${
+              isScriptMode || error
+                ? "bg-slate-950 p-6 text-slate-100"
+                : "bg-base-100 text-base-content"
+            }`}
+          >
+            {error ? (
+              <div className="absolute inset-0 p-4 bg-red-950/80 text-red-400 font-mono text-xs overflow-y-auto whitespace-pre-wrap">
+                <h4 className="font-bold mb-1">
+                  🚨 Compilation / Runtime Error:
+                </h4>
+                {error}
+              </div>
+            ) : isScriptMode ? (
+              <div className="font-mono text-xs space-y-2 w-full">
+                {consoleLogs.map((log, index) => {
+                  let colorClass = "text-slate-300";
+                  let prefix = "";
+                  if (log.type === "error") {
+                    colorClass = "text-red-400";
+                    prefix = "🔴 ";
+                  } else if (log.type === "warn") {
+                    colorClass = "text-yellow-400";
+                    prefix = "🟡 ";
+                  } else if (log.type === "info") {
+                    colorClass = "text-blue-400 italic";
+                    prefix = "ℹ️ ";
+                  } else {
+                    prefix = "❯ ";
+                  }
+                  return (
+                    <div
+                      key={index}
+                      className={`${colorClass} whitespace-pre-wrap break-all border-b border-slate-900 pb-1.5`}
+                    >
+                      <span className="select-none text-slate-500 mr-1">
+                        {prefix}
+                      </span>
+                      {log.text}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : sandboxCode && sandboxComponentName ? (
+              <iframe
+                srcDoc={iframeSrcDoc}
+                title="Live Preview"
+                className={`w-full h-full border-none bg-transparent ${isResizing ? "pointer-events-none" : ""}`}
+              />
+            ) : (
+              <span className="text-xs text-base-content/40 m-auto">
+                No output to display.
+              </span>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

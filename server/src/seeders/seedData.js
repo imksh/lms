@@ -7,7 +7,7 @@ import Subject from "../models/subject.model.js";
 import Topic from "../models/topic.model.js";
 import Submission from "../models/submission.model.js";
 import Meta from "../models/meta.model.js";
-import { topicsContent } from "../../../client/src/assets/data/topicsContent.js";
+import { topicsContent } from "./topicsContent.js";
 
 dotenv.config();
 

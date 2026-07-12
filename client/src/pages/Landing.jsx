@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
+import LmsImage from "../assets/images/lms.png";
 import {
   GraduationCap,
   ArrowRight,
@@ -31,6 +32,8 @@ import {
   Lightbulb,
   Globe,
   Settings,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 import { useAuthStore } from "../store/useAuthStore";
@@ -46,24 +49,14 @@ const techStack = [
     icon: Code,
     color: "text-blue-400 bg-blue-500/10 border-blue-500/20",
   },
-  {
-    name: "Next.js",
-    desc: "Production SSR/SSG",
-    icon: Globe,
-    color: "text-zinc-200 bg-zinc-500/10 border-zinc-500/20",
-  },
+
   {
     name: "Node.js",
     desc: "Scalable API Runtime",
     icon: Cpu,
     color: "text-green-400 bg-green-500/10 border-green-500/20",
   },
-  {
-    name: "PostgreSQL",
-    desc: "Relational DB Core",
-    icon: Database,
-    color: "text-sky-400 bg-sky-500/10 border-sky-500/20",
-  },
+
   {
     name: "MongoDB",
     desc: "Dynamic Submissions",
@@ -71,28 +64,10 @@ const techStack = [
     color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
   },
   {
-    name: "Redis",
-    desc: "High-Speed Cache",
-    icon: Server,
-    color: "text-red-400 bg-red-500/10 border-red-500/20",
-  },
-  {
-    name: "Prisma",
-    desc: "Type-Safe ORM",
-    icon: Terminal,
-    color: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20",
-  },
-  {
-    name: "Docker",
-    desc: "Instant Containerization",
-    icon: Layers,
-    color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
-  },
-  {
-    name: "TypeScript",
-    desc: "Type-Safe Reliability",
-    icon: ShieldCheck,
-    color: "text-blue-500 bg-blue-500/10 border-blue-500/20",
+    name: "Express",
+    desc: "Web Framework",
+    icon: Code,
+    color: "text-green-400 bg-green-500/10 border-green-500/20",
   },
 ];
 
@@ -121,6 +96,7 @@ const features = [
     title: "Video Lessons",
     desc: "Rich multimedia integration for interactive visual learning.",
     icon: Video,
+    badge: "Coming Soon",
   },
   {
     title: "Notes & Documents",
@@ -152,11 +128,11 @@ const features = [
     desc: "Granular lesson complete indicators synced back to servers.",
     icon: ShieldCheck,
   },
-  {
-    title: "Announcements",
-    desc: "Keep all students and classes aligned with quick broadcast messages.",
-    icon: Bell,
-  },
+  // {
+  //   title: "Announcements",
+  //   desc: "Keep all students and classes aligned with quick broadcast messages.",
+  //   icon: Bell,
+  // },
   {
     title: "Role-Based Security",
     desc: "Meticulous protection and user permissions for diverse roles.",
@@ -171,7 +147,7 @@ const features = [
   {
     title: "AI Assistant",
     desc: "Co-pilot helper to explain syntax errors and summarize topics.",
-    badge: "Future",
+    badge: "Coming Soon",
     icon: Sparkles,
   },
   {
@@ -179,11 +155,11 @@ const features = [
     desc: "Fully responsive layouts designed to render on smartphones and tablets.",
     icon: Monitor,
   },
-  {
-    title: "Self Hosted",
-    desc: "Take absolute ownership of your school data. Spin up on any VPS.",
-    icon: Server,
-  },
+  // {
+  //   title: "Self Hosted",
+  //   desc: "Take absolute ownership of your school data. Spin up on any VPS.",
+  //   icon: Server,
+  // },
 ];
 
 // Helper to render lucide lock correctly
@@ -328,13 +304,17 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-base-100 text-base-content font-sans overflow-x-hidden relative selection:bg-primary selection:text-primary-content overflow-y-auto h-dvh">
-      {/* Decorative Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
-      <div className="absolute top-[30%] right-[-10%] w-[40%] h-[50%] rounded-full bg-accent/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[10%] left-[20%] w-[45%] h-[45%] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
-
+      {/* Dynamic Background Effects */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[50%] bg-primary/20 rounded-full blur-[100px] animate-pulse-glow" />
+        <div
+          className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[50%] bg-accent/20 rounded-full blur-[120px] animate-pulse-glow"
+          style={{ animationDelay: "2s" }}
+        />
+        <div className="absolute top-[20%] right-[20%] w-[20%] h-[30%] bg-indigo-500/10 rounded-full blur-[80px] animate-float" />
+      </div>
       {/* Floating Header */}
-      <header className="sticky top-0 z-50 py-4 px-4 max-w-6xl mx-auto w-full">
+      <header className="sticky  top-0 z-50 py-4 px-4 max-w-6xl mx-auto w-full">
         <div className="w-full bg-primary text-primary-content rounded-full px-5 py-2.5 flex items-center justify-between shadow-xl border border-primary/20">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-base-100/25 flex items-center justify-center text-primary-content shadow-inner">
@@ -347,26 +327,37 @@ const Landing = () => {
 
           {/* Navigation Links - Center */}
           <nav className="hidden md:flex items-center gap-6 text-xs font-bold text-white/80">
-            <a href="#" className="hover:text-white transition-colors">Home</a>
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#roadmap" className="hover:text-white transition-colors">Roadmap</a>
-            <a href="#dedication" className="hover:text-white transition-colors">Dedication</a>
+            <a href="#home" className="hover:text-white transition-colors">
+              Home
+            </a>
+            <a href="#features" className="hover:text-white transition-colors">
+              Features
+            </a>
+            <a href="#roadmap" className="hover:text-white transition-colors">
+              Roadmap
+            </a>
+            <a
+              href="#dedication"
+              className="hover:text-white transition-colors"
+            >
+              Dedication
+            </a>
           </nav>
 
           <div className="flex items-center gap-2">
             <button
               onClick={toggleTheme}
-              className="btn btn-ghost btn-circle btn-xs hover:bg-base-100/10 text-white"
+              className="btn btn-outline btn-soft border-none btn-circle btn-xs "
               title="Toggle Theme"
             >
               {theme === "dark" ? (
-                <span>☀️</span>
+                <Sun size={16} className="text-primary-content" />
               ) : (
-                <span>🌙</span>
+                <Moon size={16} className="text-primary-content" />
               )}
             </button>
             <a
-              href="https://github.com"
+              href="https://github.com/imksh/lms"
               target="_blank"
               rel="noreferrer"
               className="btn btn-xs btn-ghost btn-circle hover:bg-base-100/10 text-white"
@@ -385,8 +376,11 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-28">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 text-center flex flex-col items-center">
+      <section
+        id="home"
+        className="relative pt-16 pb-24 md:pt-28 md:pb-32 overflow-hidden"
+      >
+        <div className="max-w-6xl mx-auto px-4 md:px-6 text-center flex flex-col items-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -415,9 +409,8 @@ const Landing = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-base-content/75 text-base md:text-xl max-w-2xl mt-6 leading-relaxed"
           >
-            Open Source Learning Platform for Schools, Coaching Institutes &
-            Educators. Fully extensible, accessible, and designed for
-            self-hosting.
+            Hamu padhab, tuhu padha
+            <span className="block italic text-base">Let's learn together</span>
           </motion.p>
 
           <motion.div
@@ -430,7 +423,7 @@ const Landing = () => {
               href="https://github.com"
               target="_blank"
               rel="noreferrer"
-              className="btn btn-outline border-base-300 hover:bg-base-200/50 rounded-2xl font-bold px-6 py-3 flex gap-2 items-center text-sm shadow-sm transition-all"
+              className="btn btn-outline border-base-300 hover:bg-base-200/50 rounded-2xl font-bold px-6 py-3 flex gap-2 items-center text-sm shadow-sm transition-all text-base-content"
             >
               <FaGithub size={16} /> View on GitHub
             </a>
@@ -442,7 +435,7 @@ const Landing = () => {
             </Link>
             <a
               href="#"
-              className="btn btn-ghost rounded-2xl font-bold px-6 py-3 flex gap-2 items-center text-sm text-base-content/70 hover:text-base-content"
+              className="btn btn-primary btn-soft rounded-2xl font-bold px-6 py-3 flex gap-2 items-center text-sm text-base-content hover:text-base-content"
             >
               📖 Documentation
             </a>
@@ -450,117 +443,52 @@ const Landing = () => {
 
           {/* Interactive UI Mockup */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.98, y: 30 }}
+            initial={{ opacity: 0, scale: 0.95, y: 40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-14 md:mt-20 w-full max-w-5xl rounded-3xl overflow-hidden border border-base-300/80 bg-base-200/30 p-2 md:p-3 shadow-2xl relative"
+            transition={{
+              duration: 1,
+              delay: 0.5,
+              type: "spring",
+              stiffness: 100,
+            }}
+            className="mt-16 md:mt-24 w-full max-w-5xl rounded-3xl overflow-hidden glass-panel shadow-2xl p-2 relative group"
           >
-            <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-accent/10 pointer-events-none rounded-3xl" />
-            <div className="rounded-2xl overflow-hidden border border-base-300 bg-base-100/90 shadow-lg relative aspect-video flex flex-col">
-              {/* Fake Window bar */}
-              <div className="px-4 py-3 bg-base-200/80 border-b border-base-300 flex items-center justify-between">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
-                </div>
-                <div className="text-[10px] text-base-content/40 font-mono tracking-wider truncate max-w-xs">
-                  {PROJECT_NAME}.dev/classroom/react-masterclass
-                </div>
-                <div className="w-12" />
-              </div>
-              {/* Mockup Canvas */}
-              <div className="flex-1 grid grid-cols-12 bg-base-100 text-left">
-                {/* Sidebar mock */}
-                <div className="col-span-3 border-r border-base-300 p-4 hidden md:flex flex-col gap-4 bg-base-200/20">
-                  <div className="flex items-center gap-2 pb-2 border-b border-base-300/50">
-                    <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <BookOpen size={12} className="text-primary" />
-                    </div>
-                    <span className="text-xs font-bold truncate">
-                      React Course
-                    </span>
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="h-6 rounded bg-primary/10 border border-primary/20 flex items-center px-2 text-[10px] font-bold text-primary">
-                      01. Getting Started
-                    </div>
-                    <div className="h-6 rounded hover:bg-base-200/50 flex items-center px-2 text-[10px] font-medium text-base-content/60">
-                      02. JSX Syntax
-                    </div>
-                    <div className="h-6 rounded hover:bg-base-200/50 flex items-center px-2 text-[10px] font-medium text-base-content/60">
-                      03. Component Tree
-                    </div>
-                    <div className="h-6 rounded hover:bg-base-200/50 flex items-center px-2 text-[10px] font-medium text-base-content/60">
-                      04. React Hooks
-                    </div>
-                  </div>
-                </div>
-                {/* Main Content mock */}
-                <div className="col-span-12 md:col-span-9 p-6 flex flex-col gap-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="text-[9px] uppercase font-black text-primary tracking-wider">
-                        Lesson 01
-                      </span>
-                      <h4 className="text-lg font-extrabold text-base-content">
-                        Introduction to Functional Components
-                      </h4>
-                    </div>
-                    <span className="badge badge-success badge-sm font-bold">
-                      Approved
-                    </span>
-                  </div>
-                  <div className="space-y-2 text-xs text-base-content/70">
-                    <p>
-                      React is built around modular, reusable components. In
-                      this lesson, we will cover the structure of JSX templates
-                      and inspect standard render operations.
-                    </p>
-                  </div>
-                  {/* Fake Code block */}
-                  <div className="mt-2 rounded-xl bg-zinc-950 p-4 font-mono text-[11px] text-zinc-300 border border-zinc-800 shadow-inner flex flex-col gap-1">
-                    <div className="text-zinc-500">
-                      // React Playground Sandbox
-                    </div>
-                    <div>
-                      <span className="text-blue-400">const</span>{" "}
-                      <span className="text-violet-400">Greeting</span> = ()
-                      =&gt; &#123;
-                    </div>
-                    <div className="pl-4">
-                      return &lt;<span className="text-pink-400">h1</span>
-                      &gt;Hello World!&lt;/
-                      <span className="text-pink-400">h1</span>&gt;;
-                    </div>
-                    <div>&#125;;</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-base-100 via-transparent to-transparent z-10 opacity-60 group-hover:opacity-0 transition-opacity duration-700" />
+            <img
+              src={LmsImage}
+              alt="Platform Dashboard"
+              className="rounded-2xl border border-base-300/50 shadow-inner group-hover:scale-[1.01] transition-transform duration-700"
+            />
           </motion.div>
         </div>
       </section>
 
       {/* Tech Stack Showcase */}
-      <section className="py-12 border-t border-b border-base-300 bg-base-200/20 relative">
+      <section className="py-16 border-t border-b border-base-300/50 bg-base-200/10 backdrop-blur-sm relative z-10">
         <div className="max-w-6xl mx-auto px-4 md:px-6">
-          <p className="text-center text-xs uppercase font-extrabold text-base-content/40 tracking-widest mb-8">
+          <p className="text-center text-xs uppercase font-extrabold text-base-content/40 tracking-widest mb-10">
             Engineered with a Modern Enterprise Tech Stack
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-4">
-            {techStack.map((tech) => {
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6">
+            {techStack.map((tech, i) => {
               const Icon = tech.icon;
               return (
-                <div
+                <motion.div
                   key={tech.name}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border text-center transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${tech.color}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className={`glass-panel flex flex-col items-center justify-center p-5 md:p-6 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/5 group ${tech.color}`}
                 >
-                  <Icon size={18} className="mb-2" />
-                  <span className="text-xs font-bold text-base-content">
+                  <Icon
+                    size={24}
+                    className="mb-3 group-hover:scale-110 transition-transform duration-300"
+                  />
+                  <span className="text-sm font-bold text-base-content">
                     {tech.name}
                   </span>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -568,47 +496,56 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 md:py-28 relative">
+      <section id="features" className="py-24 md:py-32 relative z-10">
         <div className="max-w-6xl mx-auto px-4 md:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center max-w-2xl mx-auto mb-16 md:mb-20"
+          >
             <h2 className="text-3xl md:text-5xl font-black tracking-tight">
               A Complete Platform Ecosystem
             </h2>
-            <p className="text-base-content/75 text-sm md:text-base mt-4 leading-relaxed">
+            <p className="text-base-content/70 text-sm md:text-lg mt-5 leading-relaxed">
               Every tool you need to run, grade, administer, and participate in
               academic classes, tech bootcamps, or vocational courses.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, idx) => {
               const Icon = feature.icon;
               return (
-                <div
+                <motion.div
                   key={feature.title}
-                  className="card border border-base-300 bg-base-200/30 hover:bg-base-200/60 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 rounded-2xl group"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: (idx % 3) * 0.1 }}
+                  className="glass-panel hover:bg-base-200/50 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 rounded-2xl group cursor-default"
                 >
-                  <div className="card-body p-6 flex flex-col gap-4">
+                  <div className="p-6 md:p-8 flex flex-col gap-5 h-full">
                     <div className="flex justify-between items-start">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:bg-primary group-hover:text-primary-content transition-all duration-300">
-                        <Icon size={18} />
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 group-hover:bg-primary group-hover:text-primary-content transition-all duration-300 group-hover:scale-110 shadow-sm">
+                        <Icon size={20} />
                       </div>
                       {feature.badge && (
-                        <span className="badge badge-accent badge-outline font-bold text-[10px] px-2.5 py-1">
+                        <span className="badge badge-accent badge-outline font-bold text-[10px] px-2.5 py-1 backdrop-blur-md">
                           {feature.badge}
                         </span>
                       )}
                     </div>
-                    <div className="space-y-1">
-                      <h4 className="text-base font-extrabold text-base-content">
+                    <div className="space-y-2 mt-auto">
+                      <h4 className="text-lg font-extrabold text-base-content tracking-tight">
                         {feature.title}
                       </h4>
-                      <p className="text-xs text-base-content/60 leading-relaxed">
+                      <p className="text-sm text-base-content/60 leading-relaxed font-medium">
                         {feature.desc}
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -704,7 +641,7 @@ const Landing = () => {
                 </div>
                 <div className="flex-1 py-3 px-2 rounded-xl bg-base-100 border border-base-300 shadow-sm text-center">
                   <span className="text-[11px] font-bold block text-base-content/85">
-                    Student Sandbox
+                    Student View
                   </span>
                 </div>
               </div>
@@ -734,26 +671,26 @@ const Landing = () => {
               {/* Row 5: Databases */}
               <div className="flex flex-col items-center">
                 <div className="py-3 px-5 rounded-2xl bg-zinc-950 text-zinc-300 border border-zinc-800 shadow-inner flex items-center justify-center gap-4">
-                  <div className="flex items-center gap-1.5">
+                  {/* <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                     <span className="text-[10px] font-mono font-bold text-sky-400">
                       PostgreSQL
                     </span>
-                  </div>
-                  <div className="w-px h-4 bg-zinc-800" />
+                  </div> */}
+                  {/* <div className="w-px h-4 bg-zinc-800" /> */}
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-[10px] font-mono font-bold text-emerald-400">
                       MongoDB
                     </span>
                   </div>
-                  <div className="w-px h-4 bg-zinc-800" />
-                  <div className="flex items-center gap-1.5">
+                  {/* <div className="w-px h-4 bg-zinc-800" /> */}
+                  {/* <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                     <span className="text-[10px] font-mono font-bold text-red-400">
                       Redis Cache
                     </span>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
@@ -798,7 +735,7 @@ const Landing = () => {
       </section>
 
       {/* Roadmap Section */}
-      <section className="py-20 md:py-28 relative">
+      <section id="roadmap" className="py-20 md:py-28 relative">
         <div className="max-w-4xl mx-auto px-4 md:px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl md:text-5xl font-black tracking-tight">
@@ -835,7 +772,10 @@ const Landing = () => {
       </section>
 
       {/* Dedication Section */}
-      <section className="py-20 bg-gradient-to-br from-primary/5 via-base-200 to-accent/5 border-t border-b border-base-300 relative">
+      <section
+        id="dedication"
+        className="py-20 bg-gradient-to-br from-primary/5 via-base-200 to-accent/5 border-t border-b border-base-300 relative"
+      >
         <div className="max-w-4xl mx-auto px-4 md:px-6">
           <div className="card border border-base-300/80 bg-base-100/60 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
@@ -894,7 +834,7 @@ const Landing = () => {
               href="https://github.com"
               target="_blank"
               rel="noreferrer"
-              className="btn btn-primary rounded-2xl font-bold px-6 py-3 flex gap-2 items-center text-sm shadow-md"
+              className="btn btn-primary rounded-2xl font-bold px-6 py-3 flex gap-2 items-center text-sm shadow-md "
             >
               <FaGithub size={16} /> Contribute
             </a>
@@ -902,13 +842,13 @@ const Landing = () => {
               href="https://github.com"
               target="_blank"
               rel="noreferrer"
-              className="btn btn-outline border-base-300 hover:bg-base-200/50 rounded-2xl font-bold px-6 py-3 flex gap-2 items-center text-sm shadow-sm"
+              className="btn btn-outline border-base-300 hover:bg-base-200/50 rounded-2xl font-bold px-6 py-3 flex gap-2 items-center text-sm shadow-sm text-base-content"
             >
               Open Issues <ArrowUpRight size={14} />
             </a>
             <a
               href="#"
-              className="btn btn-ghost rounded-2xl font-bold px-6 py-3 flex gap-2 items-center text-sm text-base-content/70 hover:text-base-content"
+              className="btn btn-primary btn-soft rounded-2xl font-bold px-6 py-3 flex gap-2 items-center text-sm text-base-content"
             >
               Documentation
             </a>

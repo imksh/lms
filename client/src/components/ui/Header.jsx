@@ -46,8 +46,18 @@ const Header = ({ saveStatus, theme, toggleTheme }) => {
         >
           <Menu size={20} className="text-base-content" />
         </button> */}
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="btn btn-primary btn-circle">
+        <Link to="/lms" className="flex items-center gap-2 group">
+          <div
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleSidebar();
+            }}
+            className="btn btn-primary btn-circle cursor-pointer flex md:hidden"
+          >
+            <GraduationCap size={24} />
+          </div>
+          <div className="btn btn-primary btn-circle cursor-pointer hidden md:flex">
             <GraduationCap size={24} />
           </div>
           <h1 className="text-xl font-black text-primary group-hover:scale-105 transition-transform">

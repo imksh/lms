@@ -37,7 +37,7 @@ const Playground = () => {
   const defaultCode = lang === "react" ? defaultReactCode : defaultJSCode;
 
   return (
-    <div className="px-2 py-8 md:p-8 max-w-5xl mx-auto w-full flex flex-col gap-6 animate-fadeIn">
+    <div className="px-2 py-6 md:p-6 max-w-5xl mx-auto w-full flex flex-col gap-4 animate-fadeIn">
       <select
         value={lang}
         onChange={(e) => setLang(e.target.value)}

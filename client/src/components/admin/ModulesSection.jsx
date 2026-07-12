@@ -4,6 +4,7 @@ import React, {
   useImperativeHandle,
   useEffect,
 } from "react";
+import toast from "react-hot-toast";
 import { Reorder } from "motion/react";
 import {
   Trash2,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { cmsService } from "../../services/cmsService";
 import { Field, inputCls, textareaCls } from "../common/SharedFields";
+import { useConfirm } from "../../contexts/ConfirmContext";
 
 const EMPTY_FORM = {
   title: "",
@@ -42,6 +44,7 @@ const ModulesSection = forwardRef(
     const [isReordering, setIsReordering] = useState(false);
     const [localModules, setLocalModules] = useState(modules);
     const [savingReorder, setSavingReorder] = useState(false);
+    const confirm = useConfirm();
 
     useEffect(() => {
       setLocalModules(modules);
@@ -84,14 +87,14 @@ const ModulesSection = forwardRef(
         await fetchModules();
         closeForm();
       } catch (e) {
-        alert(e.response?.data?.message || e.message);
+        toast.error(e.response?.data?.message || e.message);
       } finally {
         setSaving(false);
       }
     };
 
     const del = async (id) => {
-      if (!confirm("Delete this module? Subjects will be detached.")) return;
+      if (!(await confirm("Delete this module? Subjects will be detached."))) return;
       await cmsService.deleteModule(id);
       fetchModules();
     };
@@ -104,7 +107,7 @@ const ModulesSection = forwardRef(
         await cmsService.updateModule(mod._id, { isPublic: !mod.isPublic });
         await fetchModules();
       } catch (err) {
-        alert(err.response?.data?.message || err.message);
+        toast.error(err.response?.data?.message || err.message);
       } finally {
         setTogglingId(null);
       }
@@ -118,7 +121,7 @@ const ModulesSection = forwardRef(
         await fetchModules();
         setIsReordering(false);
       } catch (err) {
-        alert(err.response?.data?.message || err.message);
+        toast.error(err.response?.data?.message || err.message);
       } finally {
         setSavingReorder(false);
       }

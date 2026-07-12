@@ -66,7 +66,6 @@ export const loginUser = async (email, password) => {
   };
 };
 
-
 export const updateUserProfile = async (userId, updates) => {
   const user = await User.findById(userId);
   if (!user) {

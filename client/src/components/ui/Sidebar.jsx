@@ -1,10 +1,12 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { IoClose } from "react-icons/io5";
 import * as FaIcons from "react-icons/fa";
 import * as IoIcons from "react-icons/io5";
 import * as SiIcons from "react-icons/si";
 import * as LuIcons from "lucide-react";
+import { Sun, Moon } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import { useSidebarStore } from "../../store/useSidebarStore";
 
 const getIconComponent = (iconName) => {
@@ -26,6 +28,13 @@ const Sidebar = ({
   modulesList = [],
 }) => {
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "dark",
+  );
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   // Group subjects by their module — subjects without a module go into "General"
   const grouped = (() => {
@@ -40,19 +49,32 @@ const Sidebar = ({
       if (subs.length > 0) result.push({ module: mod, subjects: subs });
     }
     const unassigned = subjectsList.filter((s) => !s.module);
-    if (unassigned.length > 0) result.push({ module: null, subjects: unassigned });
+    if (unassigned.length > 0)
+      result.push({ module: null, subjects: unassigned });
     return result;
   })();
 
   return (
     <aside
-      className={className || "absolute md:static top-0 z-50 w-80 bg-base-200 border-r border-base-300 flex flex-col shrink-0 h-full hidden lg:flex animate-slideIn"}
+      className={
+        className ||
+        "absolute md:static top-0 z-50 w-80 bg-base-200 border-r border-base-300 flex flex-col shrink-0 h-full hidden lg:flex animate-slideIn"
+      }
     >
       <>
         <header className="md:hidden h-16 bg-base-200/90 backdrop-blur-md border-b border-base-300 px-6 py-4 flex items-center justify-between shrink-0 z-40">
           <div className="flex items-center gap-1">
             <Link to="/" className="flex items-center gap-2 group">
-              <span className="text-3xl animate-bounce">📚</span>
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleSidebar();
+                }}
+                className="btn btn-primary btn-circle cursor-pointer"
+              >
+                <GraduationCap size={24} />
+              </div>
               <h1 className="text-xl font-black text-primary group-hover:scale-105 transition-transform">
                 LMS
               </h1>
@@ -70,16 +92,13 @@ const Sidebar = ({
         {isTopicPage ? (
           <>
             {/* Subject selector with module grouping */}
-            <div className="p-4 border-b border-base-300 bg-base-200/50 flex flex-col gap-2 shrink-0">
-              <label className="text-[10px] font-black tracking-wider text-base-content/60 uppercase">
-                Select learning path
-              </label>
+            <div className="p-4 border-b border-base-300 bg-base-200/50 gap-2 shrink-0 flex items-center">
               <select
                 className="select select-sm select-bordered w-full rounded-xl bg-base-100 font-bold focus:border-primary text-xs"
                 value={activeCourseKey}
                 onChange={(e) => handleCourseChange(e.target.value)}
               >
-                {grouped.map(({ module, subjects }) => (
+                {grouped.map(({ module, subjects }) =>
                   module ? (
                     <optgroup key={module._id} label={module.title}>
                       {subjects.map((subj) => (
@@ -94,9 +113,19 @@ const Sidebar = ({
                         {subj.title}
                       </option>
                     ))
-                  )
-                ))}
+                  ),
+                )}
               </select>
+              <button
+                className="btn btn-circle btn-sm btn-ghost border border-base-300 mr-4 ml-2"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                {theme === "dark" ? (
+                  <Sun size={16} className="shrink-0" />
+                ) : (
+                  <Moon size={16} className="shrink-0" />
+                )}
+              </button>
             </div>
 
             <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -137,7 +166,10 @@ const Sidebar = ({
           /* Home page — show all modules with their subjects */
           <nav className="flex-1 p-3 overflow-y-auto">
             {grouped.map(({ module, subjects }, gIdx) => (
-              <div key={module?._id ?? "unassigned"} className={gIdx > 0 ? "mt-4" : ""}>
+              <div
+                key={module?._id ?? "unassigned"}
+                className={gIdx > 0 ? "mt-4" : ""}
+              >
                 {module && (
                   <div className="px-2 py-1.5 mb-2 flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />

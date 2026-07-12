@@ -13,6 +13,7 @@ export const cmsService = {
 
   // ─── Subjects ──────────────────────────────────────────────────
   getSubjects: (params) => api.get("/cms/subjects", { params }),
+  getPaginatedPublicSubjects: (page = 1, limit = 6) => api.get("/cms/subjects/paginated", { params: { page, limit } }),
   createSubject: (data) => api.post("/cms/subjects", data),
   reorderSubjects: (orderData) => api.put("/cms/subjects/reorder", { orderData }),
   updateSubject: (key, data) => api.put(`/cms/subjects/${key}`, data),
@@ -22,10 +23,11 @@ export const cmsService = {
   getTopics: (params) =>
     api.get("/cms/topics", { params: params || {} }),
   createTopic: (data) => api.post("/cms/topics", data),
-  updateTopic: (topicId, data) =>
-    api.put(`/cms/topics/${encodeURIComponent(topicId)}`, data),
-  deleteTopic: (topicId) =>
-    api.delete(`/cms/topics/${encodeURIComponent(topicId)}`),
+  reorderTopics: (orderData) => api.put("/cms/topics/reorder", { orderData }),
+  updateTopic: (id, data) =>
+    api.put(`/cms/topics/${id}`, data),
+  deleteTopic: (id) =>
+    api.delete(`/cms/topics/${id}`),
 
   // ─── Meta ──────────────────────────────────────────────────────
   getMeta: () => api.get("/meta"),

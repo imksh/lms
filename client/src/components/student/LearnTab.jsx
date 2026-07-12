@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import {
   Send,
   CheckCircle,
@@ -33,63 +34,12 @@ const LearnTab = ({
     setExpandedSubmissions((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
-  // Render fallbacks if sections is empty (backward compatibility)
   if (!activeTopic.sections || activeTopic.sections.length === 0) {
     return (
-      <div className="flex flex-col gap-6 animate-fadeIn">
-        {/* Explanation */}
-        <div className="card bg-base-200 border border-base-300 rounded-3xl p-6 shadow-sm">
-          <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
-            <span>💡</span> Explanation
-          </h3>
-          <p className="text-base-content/85 leading-relaxed text-base">
-            {activeTopic.introduction}
-          </p>
+      <div className="flex flex-col gap-6 animate-fadeIn pb-10">
+        <div className="card bg-base-200 border border-base-300 rounded-3xl p-6 shadow-sm flex flex-col gap-3 text-center">
+          <p className="text-base-content/60 text-sm">No content available for this topic yet.</p>
         </div>
-
-        {/* Analogy */}
-        {activeTopic.analogy && (
-          <div className="card bg-gradient-to-br from-accent/5 to-primary/5 border border-accent/25 rounded-3xl p-6 shadow-sm">
-            <h3 className="text-lg font-bold text-accent mb-3 flex items-center gap-2">
-              <span>🎭</span> Real-World Analogy
-            </h3>
-            <p className="text-base-content/85 leading-relaxed italic text-base">
-              {activeTopic.analogy}
-            </p>
-          </div>
-        )}
-
-        {/* Why Use It */}
-        {activeTopic.whyUse && activeTopic.whyUse.length > 0 && (
-          <div className="card bg-base-200 border border-base-300 rounded-3xl p-6 shadow-sm">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <span>🔥</span> Key Advantages & Use Cases
-            </h3>
-            <ul className="space-y-3">
-              {activeTopic.whyUse.map((reason, idx) => (
-                <li key={idx} className="flex gap-3 text-sm">
-                  <span className="text-success font-bold">✔</span>
-                  <span className="text-base-content/80">{reason}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Syntax Code Blueprint */}
-        {activeTopic.syntax && (
-          <div className="card bg-neutral text-neutral-content rounded-3xl p-6 shadow-inner font-mono relative overflow-hidden">
-            <div className="absolute top-3 right-4 text-xs font-black text-neutral-content/40 tracking-wider">
-              BLUEPRINT
-            </div>
-            <h3 className="text-base font-bold mb-4 text-primary text-opacity-90">
-              Code Example
-            </h3>
-            <pre className="text-sm overflow-x-auto whitespace-pre-wrap leading-relaxed">
-              <code>{activeTopic.syntax}</code>
-            </pre>
-          </div>
-        )}
       </div>
     );
   }
@@ -106,16 +56,16 @@ const LearnTab = ({
         const draft = taskDrafts[idx] ?? (submission?.submittedContent || "");
 
         return (
-          <div key={idx} className="flex flex-col gap-4">
-            {/* Section Card */}
-            <div className="card bg-base-200 border border-base-300 rounded-3xl p-6 shadow-sm flex flex-col gap-3">
+          <div key={idx} className="flex flex-col gap-6 mb-6">
+            {/* Section Content */}
+            <div className="flex flex-col gap-4">
               {section.title && (
-                <h3 className="text-lg font-black text-primary flex items-center gap-2 border-b border-base-300/40 pb-2.5 mb-1">
-                  <span>💡</span> {section.title}
+                <h3 className="text-2xl font-extrabold text-base-content mt-2">
+                  {section.title}
                 </h3>
               )}
               <div
-                className="text-base-content/85 leading-relaxed text-sm"
+                className="text-base-content/90 leading-loose text-[15px] prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: section.content }}
               />
             </div>
@@ -152,19 +102,21 @@ const LearnTab = ({
                         </span>
                       )
                     ) : (
-                      <span className="badge badge-neutral text-[10px] font-bold py-2.5">
+                      <span className="badge badge-primary badge-soft text-[10px] font-bold py-2.5">
                         Not Submitted
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="text-xs text-base-content/75 leading-relaxed bg-base-100 p-3.5 border border-base-300 rounded-2xl">
-                  <span className="font-bold block text-base-content mb-1 text-[11px] uppercase tracking-wider text-base-content/60">
-                    Instructions:
-                  </span>
-                  {section.task.text}
-                </div>
+                
+                  <div className="text-xs text-base-content/75 leading-relaxed bg-base-100 p-3.5 border border-base-300 rounded-2xl">
+                    <span className="font-bold block text-base-content mb-1 text-[11px] uppercase tracking-wider text-base-content/60">
+                      Instructions:
+                    </span>
+                    {section.task.text}
+                  </div>
+               
 
                 {/* Submit Form inputs based on type */}
                 <div className="flex flex-col gap-2">
@@ -178,7 +130,13 @@ const LearnTab = ({
                     )
                   </label>
 
-                  {section.task.submissionType === "playground" && <Sandbox />}
+                  {section.task.submissionType === "playground" && (
+                    <Sandbox
+                      defaultCode={section.task.defaultCode || ""}
+                      language={section.task.language || "javascript"}
+                      setData={(data) => handleDraftChange(idx, data.code)}
+                    />
+                  )}
 
                   {section.task.submissionType === "text" && (
                     <textarea
@@ -226,7 +184,7 @@ const LearnTab = ({
                     type="button"
                     onClick={async () => {
                       if (!draft.trim())
-                        return alert(
+                        return toast.error(
                           "Please fill in your response before submitting.",
                         );
                       await handleTaskSubmit(

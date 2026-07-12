@@ -6,7 +6,7 @@ import {
   evaluateSubmission,
 } from "../controllers/submission.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
-import { adminOnly } from "../middleware/admin.middleware.js";
+import { adminOnly, teacherOrAdmin } from "../middleware/admin.middleware.js";
 
 const router = express.Router();
 
@@ -16,8 +16,8 @@ router.use(protect);
 router.post("/", submitTask);
 router.get("/my", getMySubmissions);
 
-// Protected Admin evaluation routes
-router.get("/", adminOnly, getAllSubmissions);
-router.put("/:id/evaluate", adminOnly, evaluateSubmission);
+// Protected Admin/Teacher evaluation routes
+router.get("/", teacherOrAdmin, getAllSubmissions);
+router.put("/:id/evaluate", teacherOrAdmin, evaluateSubmission);
 
 export default router;

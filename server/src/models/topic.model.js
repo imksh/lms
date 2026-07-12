@@ -15,6 +15,8 @@ const taskSchema = new mongoose.Schema({
     enum: ["playground", "text", "file"],
     default: "text",
   },
+  defaultCode: { type: String, default: "" }, // Playground default code for the task
+  language: { type: String, default: "javascript" }, // Programming language for playground
 });
 
 const sectionSchema = new mongoose.Schema({
@@ -68,6 +70,10 @@ const topicSchema = new mongoose.Schema(
       default: [],
     },
     isPublic: {
+      type: Boolean,
+      default: false,
+    },
+    playgroundEnabled: {
       type: Boolean,
       default: false,
     },

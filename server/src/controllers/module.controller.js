@@ -14,9 +14,13 @@ export const getModules = async (req, res, next) => {
     if (!user) {
       // Anonymous — only public
       query = { isPublic: true };
-    } else if (user.role === "admin" || user.role === "teacher") {
+    } else if (user.role === "admin") {
       // Full access
       query = {};
+    } else if (user.role === "teacher") {
+      // Teacher — assigned modules only
+      const assignedIds = user.module || [];
+      query = { _id: { $in: assignedIds } };
     } else {
       // Student — assigned modules OR public
       const assignedIds = user.module || [];
@@ -51,6 +55,13 @@ export const getModuleById = async (req, res, next) => {
     if (!mod) return res.status(404).json({ message: "Module not found" });
 
     const user = req.user;
+    if (user && user.role === "teacher") {
+      const assignedIds = (user.module || []).map(String);
+      if (!assignedIds.includes(String(mod._id))) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+    }
+
     const subjectQuery = buildSubjectQuery(user, mod._id, mod.isPublic);
     const subjects = await Subject.find(subjectQuery)
       .populate("teacher", "name email")
@@ -160,8 +171,17 @@ function buildSubjectQuery(user, moduleId, moduleIsPublic) {
     return { module: moduleId, isPublic: true };
   }
 
-  if (user.role === "admin" || user.role === "teacher") {
+  if (user.role === "admin") {
     return { module: moduleId };
+  }
+
+  if (user.role === "teacher") {
+    const assigned = (user.module || []).map(String);
+    if (assigned.includes(String(moduleId))) {
+      return { module: moduleId };
+    } else {
+      return { module: moduleId, isPublic: true };
+    }
   }
 
   // Student whose module list includes this module → full access to subjects

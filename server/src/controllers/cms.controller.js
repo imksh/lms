@@ -13,17 +13,30 @@ export const getSubjects = async (req, res, next) => {
 
     if (!user) {
       // Anonymous — only public subjects (or public modules' subjects)
-      const publicModuleIds = await Module.find({ isPublic: true }).distinct("_id");
+      const publicModuleIds = await Module.find({ isPublic: true }).distinct(
+        "_id",
+      );
       query = moduleId
-        ? { module: moduleId, $or: [{ isPublic: true }, { module: { $in: publicModuleIds } }] }
+        ? {
+            module: moduleId,
+            $or: [{ isPublic: true }, { module: { $in: publicModuleIds } }],
+          }
         : { $or: [{ isPublic: true }, { module: { $in: publicModuleIds } }] };
-    } else if (user.role === "admin" || user.role === "teacher") {
+    } else if (user.role === "admin") {
       // Full access
       query = moduleId ? { module: moduleId } : {};
+    } else if (user.role === "teacher") {
+      const assignedIds = (user.module || []).map(String);
+      if (moduleId && !assignedIds.includes(String(moduleId))) {
+        return res.status(403).json({ message: "Access denied to this module's subjects" });
+      }
+      query = moduleId ? { module: moduleId } : { module: { $in: assignedIds } };
     } else {
       // Student — subjects belonging to their assigned modules OR public modules OR isPublic subjects
       const assignedIds = (user.module || []).map(String);
-      const publicModuleIds = await Module.find({ isPublic: true }).distinct("_id");
+      const publicModuleIds = await Module.find({ isPublic: true }).distinct(
+        "_id",
+      );
       const accessibleModuleIds = [
         ...assignedIds,
         ...publicModuleIds.map(String),
@@ -45,6 +58,38 @@ export const getSubjects = async (req, res, next) => {
   }
 };
 
+export const getPaginatedSubjects = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+
+    const publicModuleIds = await Module.find({ isPublic: true }).distinct(
+      "_id",
+    );
+    const query = {
+      $or: [{ isPublic: true }, { module: { $in: publicModuleIds } }],
+    };
+
+    const total = await Subject.countDocuments(query);
+    const subjects = await Subject.find(query)
+      .populate("module", "title icon path isPublic")
+      .populate("teacher", "name email")
+      .sort({ order: 1 })
+      .skip(skip)
+      .limit(limit);
+
+    return res.status(200).json({
+      data: subjects,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
 
 export const createSubject = async (req, res, next) => {
   try {
@@ -100,8 +145,18 @@ export const createSubject = async (req, res, next) => {
 export const updateSubject = async (req, res, next) => {
   try {
     const { key } = req.params;
-    const { title, icon, desc, color, iconColor, path, order, moduleId, teacherId, isPublic } =
-      req.body;
+    const {
+      title,
+      icon,
+      desc,
+      color,
+      iconColor,
+      path,
+      order,
+      moduleId,
+      teacherId,
+      isPublic,
+    } = req.body;
 
     const updateData = {
       title,
@@ -150,18 +205,40 @@ export const deleteSubject = async (req, res, next) => {
 export const reorderSubjects = async (req, res, next) => {
   try {
     const { orderData } = req.body;
-    if (!Array.isArray(orderData)) return res.status(400).json({ message: "orderData must be an array" });
+    if (!Array.isArray(orderData))
+      return res.status(400).json({ message: "orderData must be an array" });
 
     const ops = orderData.map((item) => ({
       updateOne: {
         filter: { key: item.key },
-        update: { order: item.order }
-      }
+        update: { order: item.order },
+      },
     }));
     if (ops.length > 0) {
       await Subject.bulkWrite(ops);
     }
     return res.status(200).json({ message: "Subjects reordered successfully" });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const reorderTopics = async (req, res, next) => {
+  try {
+    const { orderData } = req.body;
+    if (!Array.isArray(orderData))
+      return res.status(400).json({ message: "orderData must be an array" });
+
+    const ops = orderData.map((item) => ({
+      updateOne: {
+        filter: { topicId: item.topicId },
+        update: { order: item.order },
+      },
+    }));
+    if (ops.length > 0) {
+      await Topic.bulkWrite(ops);
+    }
+    return res.status(200).json({ message: "Topics reordered successfully" });
   } catch (error) {
     return next(error);
   }
@@ -192,18 +269,37 @@ export const getTopics = async (req, res, next) => {
     // Broad query (all topics) — filter by accessible subjects
     if (!user) {
       // Anonymous — topics belonging to public subjects or public modules
-      const publicModuleIds = await Module.find({ isPublic: true }).distinct("_id");
+      const publicModuleIds = await Module.find({ isPublic: true }).distinct(
+        "_id",
+      );
       const accessibleSubjects = await Subject.find({
         $or: [{ isPublic: true }, { module: { $in: publicModuleIds } }],
       }).distinct("key");
-      const topics = await Topic.find({ subjectKey: { $in: accessibleSubjects } })
+      const topics = await Topic.find({
+        subjectKey: { $in: accessibleSubjects },
+      })
         .populate("subject", "key title isPublic")
         .sort({ order: 1 });
       return res.status(200).json(topics);
     }
 
-    if (user.role === "admin" || user.role === "teacher") {
+    if (user.role === "admin") {
       const topics = await Topic.find({})
+        .populate("subject", "key title isPublic")
+        .sort({ order: 1 });
+      return res.status(200).json(topics);
+    }
+
+    if (user.role === "teacher") {
+      const assignedIds = (user.module || []).map(String);
+      const accessibleSubjects = await Subject.find({
+        module: { $in: assignedIds },
+      }).distinct("key");
+      
+      const topics = await Topic.find({
+        ...baseQuery,
+        subjectKey: { $in: accessibleSubjects },
+      })
         .populate("subject", "key title isPublic")
         .sort({ order: 1 });
       return res.status(200).json(topics);
@@ -211,8 +307,12 @@ export const getTopics = async (req, res, next) => {
 
     // Student — topics in accessible subjects
     const assignedIds = (user.module || []).map(String);
-    const publicModuleIds = await Module.find({ isPublic: true }).distinct("_id");
-    const uniqueModuleIds = [...new Set([...assignedIds, ...publicModuleIds.map(String)])];
+    const publicModuleIds = await Module.find({ isPublic: true }).distinct(
+      "_id",
+    );
+    const uniqueModuleIds = [
+      ...new Set([...assignedIds, ...publicModuleIds.map(String)]),
+    ];
     const accessibleSubjects = await Subject.find({
       $or: [{ module: { $in: uniqueModuleIds } }, { isPublic: true }],
     }).distinct("key");
@@ -241,6 +341,7 @@ export const createTopic = async (req, res, next) => {
     } = req.body;
 
     if (!subjectKey || !topicId || !title) {
+      console.error("Missing fields in createTopic:", req.body);
       return res
         .status(400)
         .json({ message: "subjectKey, topicId, and title are required" });
@@ -282,15 +383,17 @@ export const createTopic = async (req, res, next) => {
 
 export const updateTopic = async (req, res, next) => {
   try {
-    const { topicId } = req.params;
+    const { id } = req.params;
     const updateData = { ...req.body };
+    console.log(updateData.quiz);
+
     delete updateData.topicId;
     delete updateData._id;
     if (updateData.order !== undefined) {
       updateData.order = Number(updateData.order);
     }
 
-    const topic = await Topic.findOneAndUpdate({ topicId }, updateData, {
+    const topic = await Topic.findByIdAndUpdate(id, updateData, {
       new: true,
     }).populate("subject", "key title");
 
@@ -305,8 +408,8 @@ export const updateTopic = async (req, res, next) => {
 
 export const deleteTopic = async (req, res, next) => {
   try {
-    const { topicId } = req.params;
-    const topic = await Topic.findOneAndDelete({ topicId });
+    const { id } = req.params;
+    const topic = await Topic.findByIdAndDelete(id);
     if (!topic) {
       return res.status(404).json({ message: "Topic not found" });
     }

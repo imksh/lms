@@ -21,20 +21,19 @@ import {
 import { useAuthStore } from "../../store/useAuthStore";
 import useWindowSize from "../../hooks/useWindowSize";
 
-const AdminLayout = ({ children, actions, breadcrumbs }) => {
-  const navigate = useNavigate();
+const AdminLayout = ({ children, actions, breadcrumbs, title }) => {
   const location = useLocation();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const [collapsed, setCollapsed] = useState(false);
   const [theme, setTheme] = useState(
-    () => localStorage.getItem("admin-theme") || "dark",
+    () => localStorage.getItem("theme") || "dark",
   );
   const [mobileOpen, setMobileOpen] = useState(false);
   const size = useWindowSize();
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("admin-theme", theme);
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
   const isAdmin = user?.role === "admin";
@@ -100,7 +99,12 @@ const AdminLayout = ({ children, actions, breadcrumbs }) => {
 
   const activeItem = navGroups
     .flatMap((g) => g.items)
-    .find((i) => `${prefix}/${i.id}` === currentPath);
+    .find((i) => {
+      if (i.id === "cms") {
+        return currentPath.startsWith(`${prefix}/cms`);
+      }
+      return `${prefix}/${i.id}` === currentPath;
+    });
   const activeSectionTitle = activeItem ? activeItem.label : "Dashboard";
 
   const getInitials = (name) => {
@@ -193,8 +197,22 @@ const AdminLayout = ({ children, actions, breadcrumbs }) => {
         })}
       </nav>
 
-      {/* Collapse Toggle at Bottom */}
-      <div className="p-3 border-t border-base-300/50 shrink-0">
+      {/* Bottom Controls */}
+      <button
+        onClick={() => setTheme((p) => (p === "dark" ? "light" : "dark"))}
+        className={`w-full flex items-center gap-3 px-3 py-2.5 md:px-4 text-sm font-semibold transition-all duration-150 text-base-content/60 hover:text-base-content hover:bg-base-300/60 justify-between rounded-none ${collapsed ? "justify-center" : ""}`}
+        title="Toggle Theme"
+      >
+        {!collapsed && (
+          <span>Theme: {theme === "dark" ? "Dark" : "Light"}</span>
+        )}
+        {theme === "dark" ? (
+          <Sun size={18} className="shrink-0" />
+        ) : (
+          <Moon size={18} className="shrink-0" />
+        )}
+      </button>
+      <div className="p-3 border-t border-base-300/50 shrink-0 flex flex-col gap-2">
         <button
           onClick={() => setCollapsed((p) => !p)}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 text-base-content/60 hover:text-base-content hover:bg-base-300/60 ${collapsed ? "justify-center" : ""}`}
@@ -246,12 +264,12 @@ const AdminLayout = ({ children, actions, breadcrumbs }) => {
             >
               <Menu size={18} />
             </button>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
               {size.width > 648 && breadcrumbs ? (
                 breadcrumbs
               ) : (
-                <span className="text-base font-black text-base-content tracking-tight">
-                  {activeSectionTitle}
+                <span className="text-base font-black text-base-content tracking-tight truncate">
+                  {title || activeSectionTitle}
                 </span>
               )}
             </div>

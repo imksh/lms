@@ -7,7 +7,8 @@ import {
   useParams,
 } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { topicsContent } from "../../assets/data/topicsContent";
+import toast from "react-hot-toast";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import Header from "../ui/Header";
 import Sidebar from "../ui/Sidebar";
 import Sandbox from "../student/Sandbox";
@@ -20,200 +21,25 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { cmsService } from "../../services/cmsService";
 import { userDataService } from "../../services/userDataService";
 import { submissionService } from "../../services/submissionService";
-
-// Syllabus structure grouped by course modules
-const coursesConfig = {
-  react: {
-    title: "React",
-    topics: [
-      {
-        path: "/introduction",
-        title: "01. Introduction",
-        id: "01-introduction",
-      },
-      { path: "/jsx", title: "02. JSX", id: "02-jsx" },
-      { path: "/components", title: "03. Components", id: "03-components" },
-      { path: "/props", title: "04. Props", id: "04-props" },
-      { path: "/state", title: "05. State & useState", id: "05-state" },
-      { path: "/events", title: "06. Events", id: "06-events" },
-      { path: "/forms", title: "07. Forms & Inputs", id: "07-forms" },
-      { path: "/useeffect", title: "08. useEffect Hook", id: "08-useeffect" },
-      { path: "/useref", title: "09. useRef Hook", id: "09-useref" },
-      { path: "/usememo", title: "10. useMemo Hook", id: "10-usememo" },
-      {
-        path: "/usecallback",
-        title: "11. useCallback Hook",
-        id: "11-usecallback",
-      },
-      { path: "/context-api", title: "12. Context API", id: "12-contextapi" },
-      {
-        path: "/react-router",
-        title: "13. React Router",
-        id: "13-reactrouter",
-      },
-      { path: "/api-calls", title: "14. API Fetching", id: "14-apicalls" },
-      {
-        path: "/custom-hooks",
-        title: "15. Custom Hooks",
-        id: "15-customhooks",
-      },
-    ],
-  },
-  javascript: {
-    title: "JavaScript",
-    topics: [
-      {
-        path: "/javascript/basics",
-        title: "01. Variables & Types",
-        id: "js-basics",
-      },
-      {
-        path: "/javascript/functions",
-        title: "02. Functions & Closures",
-        id: "js-functions",
-      },
-      {
-        path: "/javascript/arrays-objects",
-        title: "03. Arrays & Objects",
-        id: "js-arrays-objects",
-      },
-      {
-        path: "/javascript/promises-async",
-        title: "04. Promises & Async",
-        id: "js-promises-async",
-      },
-    ],
-  },
-  node: {
-    title: "Node.js",
-    topics: [
-      { path: "/node/intro", title: "01. Node Intro", id: "node-intro" },
-      {
-        path: "/node/modules",
-        title: "02. CommonJS vs ESM",
-        id: "node-modules",
-      },
-      {
-        path: "/node/fs-module",
-        title: "03. File System (fs)",
-        id: "node-fs-module",
-      },
-      {
-        path: "/node/http-module",
-        title: "04. HTTP Server",
-        id: "node-http-module",
-      },
-    ],
-  },
-  express: {
-    title: "Express",
-    topics: [
-      {
-        path: "/express/routing",
-        title: "01. Routing Basics",
-        id: "express-routing",
-      },
-      {
-        path: "/express/middleware",
-        title: "02. Middleware Concept",
-        id: "express-middleware",
-      },
-      {
-        path: "/express/controllers",
-        title: "03. Controllers & MVC",
-        id: "express-controllers",
-      },
-      {
-        path: "/express/error-handling",
-        title: "04. Error Handlers",
-        id: "express-error-handling",
-      },
-    ],
-  },
-  mongodb: {
-    title: "MongoDB",
-    topics: [
-      {
-        path: "/mongodb/nosql-basics",
-        title: "01. NoSQL Basics",
-        id: "mongodb-basics",
-      },
-    ],
-  },
-  mongoose: {
-    title: "Mongoose",
-    topics: [
-      {
-        path: "/mongoose/schemas-models",
-        title: "01. Schemas & Models",
-        id: "mongoose-schemas",
-      },
-    ],
-  },
-  authentation: {
-    title: "Authentication",
-    topics: [
-      {
-        path: "/authentation/jwt",
-        title: "01. JWT & Sessions",
-        id: "auth-jwt",
-      },
-    ],
-  },
-};
-
-const defaultSubjects = [
-  {
-    key: "javascript",
-    title: "JavaScript Basics",
-    icon: "IoLogoJavascript",
-    iconColor: "text-yellow-500",
-  },
-  {
-    key: "react",
-    title: "React Masterclass",
-    icon: "FaReact",
-    iconColor: "text-blue-500",
-  },
-  {
-    key: "node",
-    title: "Node.js Server",
-    icon: "FaNodeJs",
-    iconColor: "text-green-500",
-  },
-  {
-    key: "express",
-    title: "Express API Framework",
-    icon: "SiExpress",
-    iconColor: "text-purple-500",
-  },
-  {
-    key: "mongodb",
-    title: "MongoDB NoSQL",
-    icon: "SiMongodb",
-    iconColor: "text-emerald-600",
-  },
-  {
-    key: "mongoose",
-    title: "Mongoose ODM",
-    icon: "SiMongoosedotws",
-    iconColor: "text-orange-500",
-  },
-  {
-    key: "authentation",
-    title: "Auth & Session JWT",
-    icon: "FaShieldAlt",
-    iconColor: "text-gray-500",
-  },
-];
+import { useCacheStore } from "../../stores/useCacheStore";
+import Loading from "../Loading";
 
 const LMSLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [dbModules, setDbModules] = useState([]);
+  const [loading, setLoading] = useState({
+    modules: true,
+    subjects: true,
+    topics: true,
+  });
+
   const [dbSubjects, setDbSubjects] = useState([]);
   const [dbTopics, setDbTopics] = useState([]);
   const [mySubmissions, setMySubmissions] = useState([]);
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "dark",
+  );
 
   const {
     moduleKey,
@@ -222,9 +48,7 @@ const LMSLayout = () => {
   } = useParams();
 
   // Resolve actual subject key and topic ID based on whether moduleKey matches a subject
-  const isSubject = (dbSubjects.length > 0 ? dbSubjects : defaultSubjects).some(
-    (s) => s.key === moduleKey,
-  );
+  const isSubject = dbSubjects.some((s) => s.key === moduleKey);
   const subjectKey = isSubject ? moduleKey : rawSubjectKey;
   const topicWildcard = isSubject
     ? rawSubjectKey + (rawTopicWildcard ? "/" + rawTopicWildcard : "")
@@ -246,11 +70,6 @@ const LMSLayout = () => {
     closeSidebar();
   }, [currentPath]);
 
-  // Dark/Light Mode state
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("theme") || "dark";
-  });
-
   // Track completed topics
   const [completedTopics, setCompletedTopics] = useState(() => {
     const saved = localStorage.getItem("completedTopics");
@@ -259,6 +78,15 @@ const LMSLayout = () => {
 
   // Active Tab for learning content
   const [activeTab, setActiveTab] = useState("learn");
+
+  // Desktop Sidebar Toggle
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(() => {
+    return localStorage.getItem("desktopSidebarOpen") !== "false";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("desktopSidebarOpen", isDesktopSidebarOpen);
+  }, [isDesktopSidebarOpen]);
 
   // Notepad State
   const [notes, setNotes] = useState(() => {
@@ -279,17 +107,29 @@ const LMSLayout = () => {
   useEffect(() => {
     const fetchSyllabus = async () => {
       try {
-        const [{ data: mods }, { data: subs }, { data: tops }] =
-          await Promise.all([
-            cmsService.getModules(),
-            cmsService.getSubjects(),
-            cmsService.getTopics(),
-          ]);
-        setDbModules(mods);
-        setDbSubjects(subs);
-        setDbTopics(tops);
+        setLoading((prev) => ({ ...prev, syllabus: true }));
+        const state = useCacheStore.getState();
+        
+        let mods = state.modules;
+        let subs = state.subjects;
+        let tops = state.allTopics;
+
+        const promises = [];
+        if (!mods) promises.push(cmsService.getModules().then(res => { mods = res.data; useCacheStore.getState().setModules(mods); }));
+        if (!subs) promises.push(cmsService.getSubjects().then(res => { subs = res.data; useCacheStore.getState().setSubjects(subs); }));
+        if (!tops) promises.push(cmsService.getTopics().then(res => { tops = res.data; useCacheStore.getState().setAllTopics(tops); }));
+
+        if (promises.length > 0) {
+          await Promise.all(promises);
+        }
+
+        setDbModules(mods || []);
+        setDbSubjects(subs || []);
+        setDbTopics(tops || []);
       } catch (err) {
         console.error("Failed to load CMS data, using fallback:", err);
+      } finally {
+        setLoading((prev) => ({ ...prev, syllabus: false }));
       }
     };
     fetchSyllabus();
@@ -300,6 +140,7 @@ const LMSLayout = () => {
     const loadUserData = async () => {
       if (user) {
         try {
+          setLoading((prev) => ({ ...prev, userData: true }));
           setSaveStatus("Syncing...");
 
           // Fetch notes
@@ -331,6 +172,8 @@ const LMSLayout = () => {
         } catch (error) {
           console.error("Sync error:", error);
           setSaveStatus("Failed to sync");
+        } finally {
+          setLoading((prev) => ({ ...prev, userData: false }));
         }
       } else {
         // Logged out, reload local states
@@ -356,7 +199,7 @@ const LMSLayout = () => {
     contentText,
   ) => {
     if (!user) {
-      alert("Please log in to submit tasks for evaluation.");
+      toast.error("Please log in to submit tasks for evaluation.");
       return false;
     }
     setSaveStatus("Submitting...");
@@ -377,11 +220,12 @@ const LMSLayout = () => {
 
       setSaveStatus("Task submitted!");
       setTimeout(() => setSaveStatus(""), 2000);
+      toast.success("Task submitted successfully!");
       return true;
     } catch (error) {
       console.error(error);
       setSaveStatus("Submission failed");
-      alert(error.response?.data?.message || error.message);
+      toast.error(error.response?.data?.message || error.message);
       return false;
     }
   };
@@ -408,27 +252,30 @@ const LMSLayout = () => {
       const activeTopicItem = dbTopics.find((t) => t.topicId === currentPath);
       if (activeTopicItem) return activeTopicItem.subjectKey;
     }
-    // Fallback prefixes
-    if (currentPath.startsWith("/javascript")) return "javascript";
-    if (currentPath.startsWith("/node")) return "node";
-    if (currentPath.startsWith("/express")) return "express";
-    if (currentPath.startsWith("/mongodb")) return "mongodb";
-    if (currentPath.startsWith("/mongoose")) return "mongoose";
-    if (currentPath.startsWith("/authentation")) return "authentation";
     return "react"; // Default fallback
   };
 
   const getDynamicSyllabus = () => {
     if (dbSubjects.length === 0 || dbTopics.length === 0) {
-      return coursesConfig;
+      return {};
     }
     const config = {};
     dbSubjects.forEach((subj) => {
-      const mod = dbModules.find(
-        (m) => m._id === subj.module?._id || m._id === subj.module,
-      );
-      const modKey =
-        mod?.path && mod.path !== "/" ? mod.path.replace(/^\//, "") : "";
+      const mod =
+        dbModules.find(
+          (m) => m._id === subj.module?._id || m._id === subj.module,
+        ) || subj.module;
+
+      let modKey = "default";
+      if (mod) {
+        if (mod.path && mod.path !== "/") {
+          modKey = mod.path.replace(/^\//, "");
+        } else if (mod._id) {
+          modKey = mod._id;
+        } else if (typeof mod === "string") {
+          modKey = mod;
+        }
+      }
 
       config[subj.key] = {
         title: subj.title,
@@ -542,11 +389,14 @@ const LMSLayout = () => {
 
   const getActiveTopic = () => {
     const dbTopic = dbTopics.find((t) => t.topicId === topicPath);
-    if (dbTopic) return dbTopic;
-    return topicsContent[topicPath];
+    return dbTopic;
   };
 
   const activeTopic = getActiveTopic();
+
+  if (loading.syllabus || loading.userData) {
+    return <Loading />;
+  }
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-base-100 text-base-content flex flex-col font-sans transition-colors duration-300">
@@ -554,8 +404,16 @@ const LMSLayout = () => {
       <Header saveStatus={saveStatus} theme={theme} toggleTheme={toggleTheme} />
 
       {/* Main LMS Dashboard Container */}
-      <div className="flex flex-1 overflow-hidden h-[calc(100vh-4rem)]">
-        {/* Sidebar Navigation - Full width on mobile if no topic, else hidden on mobile */}
+      <div className="flex flex-1 overflow-hidden h-[calc(100vh-4rem)] relative">
+        {/* Mobile Sidebar Backdrop */}
+        {isOpen && (
+          <div
+            className="fixed inset-0 bg-base-300/50 backdrop-blur-sm z-40 lg:hidden"
+            onClick={closeSidebar}
+          />
+        )}
+
+        {/* Sidebar Navigation - Full width on mobile if no topic, else hidden on mobile unless toggled */}
         {isTopicPage && (
           <Sidebar
             activeCourseKey={activeCourseKey}
@@ -563,10 +421,34 @@ const LMSLayout = () => {
             topicsList={topicsList}
             currentPath={currentPath}
             isTopicPage={isTopicPage}
-            subjectsList={dbSubjects.length > 0 ? dbSubjects : defaultSubjects}
+            subjectsList={dbSubjects}
             modulesList={dbModules}
-            className={`flex flex-col shrink-0 h-full min-h-0 bg-base-200 border-r border-base-300 z-10 transition-all duration-300 ${activeTopic ? "hidden lg:flex lg:w-80" : "flex w-full lg:w-80"}`}
+            className={`flex flex-col shrink-0 h-full min-h-0 bg-base-200 border-base-300 transition-all duration-300 ${
+              isOpen
+                ? "fixed lg:static inset-y-0 left-0 z-50 w-80 shadow-2xl lg:shadow-none flex border-r"
+                : activeTopic
+                  ? `hidden lg:flex z-10 ${isDesktopSidebarOpen ? "w-80 border-r opacity-100" : "w-0 overflow-hidden border-none opacity-0"}`
+                  : `flex w-full z-10 ${isDesktopSidebarOpen ? "lg:w-80 border-r lg:opacity-100" : "lg:w-0 lg:overflow-hidden lg:border-none lg:opacity-0"}`
+            }`}
           />
+        )}
+
+        {/* Desktop Sidebar Toggle Button */}
+        {isTopicPage && (
+          <button
+            onClick={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
+            className="hidden lg:flex absolute z-50 top-4 btn btn-circle btn-sm bg-base-100 border border-base-300 shadow-md text-base-content hover:bg-base-200 transition-all duration-300"
+            style={{
+              left: isDesktopSidebarOpen ? "calc(20rem - 1rem)" : "1rem",
+            }}
+            title={isDesktopSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
+          >
+            {isDesktopSidebarOpen ? (
+              <PanelLeftClose size={16} />
+            ) : (
+              <PanelLeftOpen size={16} />
+            )}
+          </button>
         )}
 
         {/* Content Workspace - Independently Scrolling */}
@@ -637,16 +519,18 @@ const LMSLayout = () => {
                 >
                   Learn
                 </button>
-                <button
-                  onClick={() => setActiveTab("demo")}
-                  className={`tab tab-sm rounded-xl px-4 md:px-5 text-sm md:text-base font-bold transition-all ${
-                    activeTab === "demo"
-                      ? "tab-active bg-primary text-primary-content!"
-                      : ""
-                  }`}
-                >
-                  Playground
-                </button>
+                {activeTopic.playgroundEnabled && (
+                  <button
+                    onClick={() => setActiveTab("demo")}
+                    className={`tab tab-sm rounded-xl px-4 md:px-5 text-sm md:text-base font-bold transition-all ${
+                      activeTab === "demo"
+                        ? "tab-active bg-primary text-primary-content!"
+                        : ""
+                    }`}
+                  >
+                    Playground
+                  </button>
+                )}
                 <button
                   onClick={() => setActiveTab("practice")}
                   className={`tab tab-sm rounded-xl px-4 md:px-5 text-sm md:text-base font-bold transition-all ${
@@ -685,17 +569,10 @@ const LMSLayout = () => {
                 {/* 2. LIVE DEMO TAB */}
                 {activeTab === "demo" && (
                   <div className="flex flex-col gap-6 animate-fadeIn">
-                    <div className="p-4 bg-info/10 text-info border border-info/20 rounded-2xl flex gap-3 items-center">
-                      <span className="text-2xl">⚡</span>
-                      <div className="text-sm">
-                        <span className="font-bold">Interactive Sandbox:</span>{" "}
-                        Below is a live instance of the topic component.
-                        Interact with it directly to observe how states change
-                        and render.
-                      </div>
-                    </div>
-
-                    <Sandbox defaultCode={activeTopic.syntax} theme={theme} />
+                    <Sandbox
+                      defaultCode={activeTopic.playgroundCode}
+                      theme={theme}
+                    />
                   </div>
                 )}
 

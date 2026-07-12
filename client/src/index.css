@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 @plugin "flyonui";
 
@@ -5,6 +6,7 @@
    LIGHT THEME (Corporate Override)
 ======================================== */
 :root, [data-theme="light"] {
+  /* --font-sans: "Outfit", sans-serif; */
   --color-base-100: #ffffff;
   --color-base-200: #f8fafc;
   --color-base-300: #e2e8f0;
@@ -58,6 +60,53 @@
 }
 
 /* ========================================
+   MODERN UI UTILITIES & ANIMATIONS
+======================================== */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .glass-panel {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+.animate-float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+/* ========================================
    ANIMATIONS
 ======================================== */
 @keyframes slideInRight {
@@ -85,4 +134,35 @@
 
 .animate-zoomIn {
   animation: zoomIn 0.18s ease forwards;
+}
+
+/* ========================================
+   FULLSCREEN SANDBOX FIXES
+======================================== */
+body.sandbox-fullscreen-active header {
+  z-index: 0 !important;
+}
+
+body.sandbox-fullscreen-active .animate-fadeIn {
+  animation: none !important;
+  transform: none !important;
+}
+
+
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
+
+* {
+  scrollbar-width: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
 }
